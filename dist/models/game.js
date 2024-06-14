@@ -7,6 +7,7 @@ var Game = /** @class */ (function () {
         this.rooms[room.getCode()] = room;
     };
     Game.prototype.removeRoom = function (room) {
+        delete this.rooms[room.getCode()];
     };
     return Game;
 }());

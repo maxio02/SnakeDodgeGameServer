@@ -19,7 +19,7 @@ export class Game {
     }
 
     removeRoom(room: Room){
-        
+        delete this.rooms[room.getCode()]
     }
     
 }
