@@ -12,6 +12,7 @@ var Player = /** @class */ (function () {
         return {
             username: this.username,
             isReady: this.isReady,
+            color: this.color
         };
     };
     return Player;

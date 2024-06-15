@@ -52,7 +52,7 @@ wss.on('connection', function connection(ws) {
                     player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room_1 }));
                 });
                 break;
-            case 'SET_READY':
+            case 'PLAYER_DATA':
                 var readyRoom_1 = game.rooms[message.roomCode];
                 //if the room does not exist we exit and sent an error message to the client
                 if (!readyRoom_1) {
@@ -60,9 +60,10 @@ wss.on('connection', function connection(ws) {
                     return;
                 }
                 //otherwise find the player in the room that sent the request and set his state to ready
-                var player = readyRoom_1.getPlayers().find(function (p) { return p.username === message.username; });
+                var player = readyRoom_1.getPlayers().find(function (p) { return p.username === message.player.username; });
                 if (player) {
-                    player.isReady = message.readyState;
+                    player.isReady = message.player.isReady;
+                    player.color = message.player.color;
                 }
                 //notify all players about the new ready state
                 readyRoom_1.getPlayers().forEach(function (player) {
