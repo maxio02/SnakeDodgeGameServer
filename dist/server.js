@@ -7,16 +7,19 @@ var game = new Game();
 function removePlayerFromRoom(ws) {
     var _loop_1 = function (roomCode) {
         var room = game.rooms[roomCode];
-        var playerToRemove = room.getPlayers().find(function (player) { return player.getWebSocket() === ws; });
-        room.removePlayer(playerToRemove);
+        Object.values(room.getPlayers()).forEach(function (player) {
+            if (player.getWebSocket() == ws) {
+                room.removePlayer(player);
+            }
+        });
         //if the room in now empty, remove it from the game and return;
-        if (room.getPlayers().length == 0) {
+        if (Object.keys(room.getPlayers()).length == 0) {
             console.log('Removing empty room ' + room.getCode());
             game.removeRoom(room);
             return { value: void 0 };
         }
         //notify all players about the new ready state
-        room.getPlayers().forEach(function (player) {
+        Object.values(room.getPlayers()).forEach(function (player) {
             player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }));
         });
     };
@@ -31,6 +34,16 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', rawdata);
         var message = JSON.parse(rawdata.toString());
         switch (message.type) {
+            case 'BEGIN_GAME':
+                var roomToBegin = game.rooms[message.roomCode];
+                //if the room does not exist we exit and sent an error message to the client
+                if (typeof roomToBegin == 'undefined') {
+                    ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+                    break;
+                }
+                //begin the game
+                roomToBegin.startGame();
+                break;
             case 'CREATE_ROOM':
                 var newRoom = createRoom(new Player(message.username, ws));
                 game.addRoom(newRoom);
@@ -48,7 +61,7 @@ wss.on('connection', function connection(ws) {
                 room_1.addPlayer(new Player(message.username, ws));
                 ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room_1 }));
                 //send new room data to all users in the room
-                room_1.getPlayers().forEach(function (player) {
+                Object.values(room_1.getPlayers()).forEach(function (player) {
                     player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room_1 }));
                 });
                 break;
@@ -60,18 +73,21 @@ wss.on('connection', function connection(ws) {
                     return;
                 }
                 //otherwise find the player in the room that sent the request and set his state to ready
-                var player = readyRoom_1.getPlayers().find(function (p) { return p.username === message.player.username; });
+                var player = readyRoom_1.getPlayers()[message.player.username];
                 if (player) {
                     player.isReady = message.player.isReady;
                     player.color = message.player.color;
                 }
                 //notify all players about the new ready state
-                readyRoom_1.getPlayers().forEach(function (player) {
+                Object.values(readyRoom_1.getPlayers()).forEach(function (player) {
                     player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom_1 }));
                 });
                 break;
+            case 'KEY_EVENT':
+                // makeTurn(message);
+                break;
             case 'ERROR':
-                alert("Error: ".concat(message.message));
+                console.error("Error: ".concat(message.message));
                 break;
         }
     });
@@ -80,4 +96,17 @@ wss.on('connection', function connection(ws) {
     });
     ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
 });
+setInterval(function () {
+    for (var key in game.rooms) {
+        if (game.rooms.hasOwnProperty(key)) {
+            var room = game.rooms[key];
+            //do not tick and broadcast gameplay to non running rooms
+            if (room.gameState != 0 /* GameState.RUNNING */) {
+                continue;
+            }
+            room.broadcastGameTickToPlayers();
+            room.tick(1000 / 60 / 6);
+        }
+    }
+}, 1000 / 60);
 //# sourceMappingURL=server.js.map

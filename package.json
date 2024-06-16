@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "tsc && node dist/server.js",
@@ -17,6 +17,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "vector2d": "^3.0.0",
     "ws": "^8.17.0"
   }
 }

@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
-import { Room } from './models/room.js';
+import { GameState, Room } from './models/room.js';
 
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -11,18 +11,24 @@ const game = new Game();
 function removePlayerFromRoom(ws: WebSocket) {
   for (const roomCode in game.rooms) {
     const room = game.rooms[roomCode];
-    const playerToRemove = room.getPlayers().find(player => player.getWebSocket() === ws);
+    
+    Object.values(room.getPlayers()).forEach(player => {
+      if(player.getWebSocket() == ws){
+        room.removePlayer(player);
+      }
+    })
+  
 
-    room.removePlayer(playerToRemove);
+    
 
     //if the room in now empty, remove it from the game and return;
-    if (room.getPlayers().length == 0){
+    if (Object.keys(room.getPlayers()).length == 0){
       console.log('Removing empty room ' + room.getCode());
       game.removeRoom(room);
       return;
     }
     //notify all players about the new ready state
-    room.getPlayers().forEach(player => {
+    Object.values(room.getPlayers()).forEach(player => {
       player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room}))
     });
   }
@@ -36,6 +42,18 @@ wss.on('connection', function connection(ws: WebSocket) {
     const message = JSON.parse(rawdata.toString());
 
     switch (message.type) {
+      case 'BEGIN_GAME':
+      let roomToBegin = game.rooms[message.roomCode];
+
+      //if the room does not exist we exit and sent an error message to the client
+      if (typeof roomToBegin == 'undefined') {
+        ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }))
+        break;
+      }
+      //begin the game
+      
+      roomToBegin.startGame();
+      break;
       case 'CREATE_ROOM':
         let newRoom = createRoom(new Player(message.username, ws));
         game.addRoom(newRoom);
@@ -58,7 +76,7 @@ wss.on('connection', function connection(ws: WebSocket) {
         ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room }))
 
         //send new room data to all users in the room
-        room.getPlayers().forEach(player => {
+        Object.values(room.getPlayers()).forEach(player => {
           player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }))
 
         });
@@ -72,20 +90,23 @@ wss.on('connection', function connection(ws: WebSocket) {
           return;
         }
         //otherwise find the player in the room that sent the request and set his state to ready
-        let player = readyRoom.getPlayers().find(p => p.username === message.player.username);
+        let player = readyRoom.getPlayers()[message.player.username];
         if (player) {
           player.isReady = message.player.isReady;
           player.color = message.player.color;
         }
 
         //notify all players about the new ready state
-        readyRoom.getPlayers().forEach(player => {
+        Object.values(readyRoom.getPlayers()).forEach(player => {
           player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom }))
         });
         break;
 
+      case 'KEY_EVENT':
+        // makeTurn(message);
+      break;
       case 'ERROR':
-        alert(`Error: ${message.message}`);
+        console.error(`Error: ${message.message}`);
         break;
     }
   });
@@ -96,3 +117,18 @@ wss.on('connection', function connection(ws: WebSocket) {
 
   ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
 });
+
+
+setInterval(() => {
+  for(const key in game.rooms){
+    if(game.rooms.hasOwnProperty(key)){
+      const room = game.rooms[key];
+      //do not tick and broadcast gameplay to non running rooms
+      if(room.gameState != GameState.RUNNING){
+        continue;
+      }
+      room.broadcastGameTickToPlayers();
+      room.tick(1000 / 60/6);
+    }
+  }
+}, 1000 / 60);

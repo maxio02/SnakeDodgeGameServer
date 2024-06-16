@@ -1,6 +1,5 @@
 var Game = /** @class */ (function () {
     function Game() {
-        this.status = 1 /* GameState.WAITING */;
         this.rooms = {};
     }
     Game.prototype.addRoom = function (room) {

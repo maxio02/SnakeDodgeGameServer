@@ -1,4 +1,6 @@
 import { WebSocket } from 'ws';
+import Snake from './snake';
+import InputManager from './inputManager.js';
 
 
 export class Player {
@@ -6,6 +8,8 @@ export class Player {
     public isReady: boolean;
     public color: string;
     private ws: WebSocket
+    public snake: Snake;
+    public inputManager: InputManager;
     constructor(username: string, ws: WebSocket, isReady: boolean = false) {
         this.username = username;
         this.ws = ws;
@@ -23,5 +27,7 @@ export class Player {
           color: this.color
         };
       }
+
+
 
 }
