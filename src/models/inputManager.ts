@@ -14,6 +14,15 @@ export default class InputManager {
     this.snake = snake;
   }
 
+  public handleInput(key: Dir, pressed: boolean){
+        if(pressed) {
+            this.onKeyDown(key);
+        }
+        else{
+            this.onKeyUp(key);
+        }
+  }
+
   private onKeyDown(turnDirection: Dir): void {
     //if snake is dead, ignore the key presses
     if(!this.snake.isAlive) return;

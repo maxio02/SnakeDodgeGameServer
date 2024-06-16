@@ -5,7 +5,7 @@ var Snake = /** @class */ (function () {
     function Snake(startPos, color) {
         this.segments = [];
         this.isAlive = true;
-        this.turnRadius = 60;
+        this.turnRadius = 90;
         this.distanceToChangeOfState = 10;
         this.addSegment(startPos);
         this.color = color;

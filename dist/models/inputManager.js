@@ -5,6 +5,14 @@ var InputManager = /** @class */ (function () {
     function InputManager(snake) {
         this.snake = snake;
     }
+    InputManager.prototype.handleInput = function (key, pressed) {
+        if (pressed) {
+            this.onKeyDown(key);
+        }
+        else {
+            this.onKeyUp(key);
+        }
+    };
     InputManager.prototype.onKeyDown = function (turnDirection) {
         //if snake is dead, ignore the key presses
         if (!this.snake.isAlive)

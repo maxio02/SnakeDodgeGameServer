@@ -4,6 +4,7 @@ import Snake from "./snake.js";
 import LineSegment from "./lineSegment.js";
 import ArcSegment from "./arcSegment.js";
 import InputManager from "./inputManager.js";
+import CollisionHandler from "../controller/CollisionHandler.js";
 
 export const enum GameState {
     RUNNING,
@@ -18,10 +19,10 @@ export class Room {
     private host: Player;
     private code: string;
     public gameState: GameState = GameState.IN_LOBBY;
+    private collisionHandler: CollisionHandler;
 
 
-
-    constructor(code: string, host: Player, maxSize: number = 3) {
+    constructor(code: string, host: Player, maxSize: number = 4) {
         this.code = code;
         this.host = host;
         this.maxSize = maxSize;
@@ -81,6 +82,7 @@ export class Room {
             player.inputManager = new InputManager(player.snake);
         });
 
+        this.collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(player => player.snake));
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
 
@@ -132,5 +134,6 @@ export class Room {
         Object.values(this.getPlayers()).forEach(player => {
             player.snake.move(dt);
         });
+        this.collisionHandler.checkCollisions()
     }
 }

@@ -7,7 +7,7 @@ export default class Snake {
     public segments: Segment[] = [];
     private color: string;
     public isAlive: boolean = true;
-    public turnRadius: number = 60;
+    public turnRadius: number = 90;
     private distanceToChangeOfState: number = 10;
 
 

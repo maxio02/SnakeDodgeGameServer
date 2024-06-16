@@ -103,8 +103,19 @@ wss.on('connection', function connection(ws: WebSocket) {
         break;
 
       case 'KEY_EVENT':
-        // makeTurn(message);
-      break;
+        let playRoom = game.rooms[message.roomCode];
+
+        if (!playRoom) {
+          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+          return;
+        }
+
+        let keyPlayer = playRoom.getPlayers()[message.username];
+        if (keyPlayer) {
+          keyPlayer.inputManager.handleInput(message.key, message.pressed === true);
+        }
+        break;
+        
       case 'ERROR':
         console.error(`Error: ${message.message}`);
         break;
@@ -131,4 +142,4 @@ setInterval(() => {
       room.tick(1000 / 60/6);
     }
   }
-}, 1000 / 60);
+}, 1000 / 120);

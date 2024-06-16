@@ -84,7 +84,15 @@ wss.on('connection', function connection(ws) {
                 });
                 break;
             case 'KEY_EVENT':
-                // makeTurn(message);
+                var playRoom = game.rooms[message.roomCode];
+                if (!playRoom) {
+                    ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+                    return;
+                }
+                var keyPlayer = playRoom.getPlayers()[message.username];
+                if (keyPlayer) {
+                    keyPlayer.inputManager.handleInput(message.key, message.pressed === true);
+                }
                 break;
             case 'ERROR':
                 console.error("Error: ".concat(message.message));
@@ -108,5 +116,5 @@ setInterval(function () {
             room.tick(1000 / 60 / 6);
         }
     }
-}, 1000 / 60);
+}, 1000 / 120);
 //# sourceMappingURL=server.js.map

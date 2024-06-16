@@ -2,9 +2,10 @@ import { Vector } from "vector2d";
 import Snake from "./snake.js";
 import LineSegment from "./lineSegment.js";
 import InputManager from "./inputManager.js";
+import CollisionHandler from "../controller/CollisionHandler.js";
 var Room = /** @class */ (function () {
     function Room(code, host, maxSize) {
-        if (maxSize === void 0) { maxSize = 3; }
+        if (maxSize === void 0) { maxSize = 4; }
         this.players = {};
         this.gameState = 1 /* GameState.IN_LOBBY */;
         this.code = code;
@@ -53,6 +54,7 @@ var Room = /** @class */ (function () {
             player.snake = new Snake(new LineSegment(startPos, startPos.add(new Vector(10, 10)), true, Math.random() * 2 * Math.PI), player.color);
             player.inputManager = new InputManager(player.snake);
         });
+        this.collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }));
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
     };
@@ -94,6 +96,7 @@ var Room = /** @class */ (function () {
         Object.values(this.getPlayers()).forEach(function (player) {
             player.snake.move(dt);
         });
+        this.collisionHandler.checkCollisions();
     };
     return Room;
 }());
