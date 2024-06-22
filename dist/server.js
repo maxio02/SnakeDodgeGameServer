@@ -9,24 +9,23 @@ function removePlayerFromRoom(ws) {
         var room = game.rooms[roomCode];
         Object.values(room.getPlayers()).forEach(function (player) {
             if (player.getWebSocket() == ws) {
-                room.removePlayer(player);
+                if (room.removePlayer(player)) {
+                    //if the room in now empty, remove it from the game and return;
+                    if (Object.keys(room.getPlayers()).length == 0) {
+                        console.log('Removing empty room ' + room.getCode());
+                        game.removeRoom(room);
+                        return;
+                    }
+                    //notify all players about the new ready state
+                    Object.values(room.getPlayers()).forEach(function (player) {
+                        player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }));
+                    });
+                }
             }
-        });
-        //if the room in now empty, remove it from the game and return;
-        if (Object.keys(room.getPlayers()).length == 0) {
-            console.log('Removing empty room ' + room.getCode());
-            game.removeRoom(room);
-            return { value: void 0 };
-        }
-        //notify all players about the new ready state
-        Object.values(room.getPlayers()).forEach(function (player) {
-            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }));
         });
     };
     for (var roomCode in game.rooms) {
-        var state_1 = _loop_1(roomCode);
-        if (typeof state_1 === "object")
-            return state_1.value;
+        _loop_1(roomCode);
     }
 }
 wss.on('connection', function connection(ws) {
@@ -57,9 +56,15 @@ wss.on('connection', function connection(ws) {
                     ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
                     break;
                 }
-                //if the room does exist we add the player to it and send him the room info
-                room_1.addPlayer(new Player(message.username, ws));
-                ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room_1 }));
+                //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
+                var addResult = room_1.addPlayer(new Player(message.username, ws));
+                if (addResult == 3 /* addPlayerResult.SUCCESS */) {
+                    ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room_1 }));
+                }
+                else {
+                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult.toString }));
+                    break;
+                }
                 //send new room data to all users in the room
                 Object.values(room_1.getPlayers()).forEach(function (player) {
                     player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room_1 }));
@@ -113,8 +118,8 @@ setInterval(function () {
                 continue;
             }
             room.broadcastGameTickToPlayers();
-            room.tick(1000 / 60 / 6);
+            room.tick(1000 / 60 / 3);
         }
     }
-}, 1000 / 120);
+}, 1000 / 100);
 //# sourceMappingURL=server.js.map

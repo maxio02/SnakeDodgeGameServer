@@ -95,17 +95,21 @@ kill() {
 checkWalls() {
     const lastSegment = this.head;
     if (lastSegment.endPoint.x < 0) {
-        this.addSegment(lastSegment.getContinuingSegment(new Vector(2000, 0)));
+        this.kill();
+        // this.addSegment(lastSegment.getContinuingSegment(new Vector(2000, 0)));
     } 
     else if (lastSegment.endPoint.x > 2000) {
-        this.addSegment(lastSegment.getContinuingSegment(new Vector(-2000, 0)));
+        this.kill();
+        // this.addSegment(lastSegment.getContinuingSegment(new Vector(-2000, 0)));
     }
     
     if (lastSegment.endPoint.y < 0) {
-        this.addSegment(lastSegment.getContinuingSegment(new Vector(0, 2000)));
+        this.kill();
+        // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, 2000)));
     } 
     else if (lastSegment.endPoint.y > 2000) {
-        this.addSegment(lastSegment.getContinuingSegment(new Vector(0, -2000)));
+        this.kill();
+        // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, -2000)));
     }
     
 }

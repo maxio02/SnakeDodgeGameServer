@@ -15,6 +15,9 @@ var Player = /** @class */ (function () {
             color: this.color
         };
     };
+    Player.prototype.removeSnake = function () {
+        this.snake = null;
+    };
     return Player;
 }());
 export { Player };

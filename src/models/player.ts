@@ -14,9 +14,10 @@ export class Player {
         this.username = username;
         this.ws = ws;
         this.isReady = isReady;
+        
     }
 
-    getWebSocket(){
+    public getWebSocket(){
         return this.ws;
     }
 
@@ -28,6 +29,9 @@ export class Player {
         };
       }
 
+    public removeSnake() {
+      this.snake = null;
+    }
 
 
 }
