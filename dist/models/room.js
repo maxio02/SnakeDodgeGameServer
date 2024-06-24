@@ -3,16 +3,17 @@ import Snake from "./snake.js";
 import LineSegment from "./lineSegment.js";
 import InputManager from "./inputManager.js";
 import CollisionHandler from "../controller/CollisionHandler.js";
+import PowerupHandler from "../controller/powerupHandler.js";
 var Room = /** @class */ (function () {
     function Room(code, host, maxSize) {
         if (maxSize === void 0) { maxSize = 4; }
-        this.players = {};
+        this._players = {};
         this.gameState = 1 /* GameState.IN_LOBBY */;
-        this.deadSnakesTimer = 0;
-        this.playersToBeRemoved = [];
-        this.code = code;
-        this.host = host;
-        this.maxSize = maxSize;
+        this._deadSnakesTimer = 0;
+        this._playersToBeRemoved = [];
+        this._code = code;
+        this._host = host;
+        this._maxSize = maxSize;
         this.addPlayer(host);
     }
     Room.prototype.addPlayer = function (player) {
@@ -21,34 +22,34 @@ var Room = /** @class */ (function () {
             return 1 /* addPlayerResult.GAME_RUNNING */;
         }
         //if there is a player named the same also do not allow to join
-        if (Object.values(this.players).some(function (p) { return p.username === player.username; })) {
+        if (Object.values(this._players).some(function (p) { return p.username === player.username; })) {
             return 2 /* addPlayerResult.PLAYER_ALREADY_EXISTS */;
         }
         //if the room is full also do not allow to join
-        if (Object.keys(this.players).length >= this.maxSize) {
+        if (Object.keys(this._players).length >= this._maxSize) {
             return 0 /* addPlayerResult.ROOM_FULL */;
         }
-        this.players[player.username] = player;
+        this._players[player.username] = player;
         return 3 /* addPlayerResult.SUCCESS */;
     };
     Room.prototype.removePlayer = function (player) {
         //if the game is not in the in_lobby state instead of deleting the player add him to the queue to be deleted once the game finishes 
         if (this.gameState != 1 /* GameState.IN_LOBBY */) {
-            this.playersToBeRemoved.push(player);
+            this._playersToBeRemoved.push(player);
             return false;
         }
         else {
             // Remove the player from the players object
-            delete this.players[player.username];
+            delete this._players[player.username];
             // If the removed player was the host, assign a new host randomly
-            if (player === this.host) {
-                var playerKeys = Object.keys(this.players);
+            if (player === this._host) {
+                var playerKeys = Object.keys(this._players);
                 if (playerKeys.length > 0) {
                     var randomIndex = Math.floor(Math.random() * playerKeys.length);
-                    this.host = this.players[playerKeys[randomIndex]];
+                    this._host = this._players[playerKeys[randomIndex]];
                 }
                 else {
-                    this.host = null;
+                    this._host = null;
                 }
             }
             return true;
@@ -56,18 +57,18 @@ var Room = /** @class */ (function () {
     };
     Room.prototype.removeStagedPlayers = function () {
         var _this = this;
-        this.playersToBeRemoved.forEach(function (player) {
-            delete _this.players[player.username];
+        this._playersToBeRemoved.forEach(function (player) {
+            delete _this._players[player.username];
         });
     };
     Room.prototype.getCode = function () {
-        return this.code;
+        return this._code;
     };
     Room.prototype.getPlayers = function () {
-        return this.players;
+        return this._players;
     };
     Room.prototype.getHost = function () {
-        return this.host;
+        return this._host;
     };
     Room.prototype.startGame = function () {
         //change the game state
@@ -75,10 +76,11 @@ var Room = /** @class */ (function () {
         //create all the snakes and InputManagers associated with players
         Object.values(this.getPlayers()).forEach(function (player) {
             var startPos = new Vector(Math.random() * 1200 + 400, Math.random() * 1200 + 400);
-            player.snake = new Snake(new LineSegment(startPos, startPos.add(new Vector(10, 10)), true, Math.random() * 2 * Math.PI), player.color);
+            player.snake = new Snake(new LineSegment(startPos, startPos.add(new Vector(10, 10)), true, Math.random() * 2 * Math.PI));
             player.inputManager = new InputManager(player.snake);
         });
-        this.collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }));
+        this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }));
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }), 200);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
     };
@@ -104,13 +106,16 @@ var Room = /** @class */ (function () {
             lastSegment: player.snake.head,
             segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
         }); });
+        var powerupUpdate = this._powerupHandler.powerupUpdate;
         Object.values(this.getPlayers()).forEach(function (player) {
             //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
             player.getWebSocket().send(JSON.stringify({
                 type: 'GAMEPLAY_DATA',
-                snakeHeads: snakeHeads
+                snakeHeads: snakeHeads,
+                powerUpInfo: powerupUpdate
             }));
         });
+        this._powerupHandler.resetUpdate();
     };
     Room.prototype.broadcastLobbyInfoToPlayers = function () {
         var _this = this;
@@ -127,20 +132,31 @@ var Room = /** @class */ (function () {
     Room.prototype.tick = function (dt) {
         var allPlayersDied = Object.values(this.getPlayers()).every(function (player) { return !player.snake.isAlive; });
         if (allPlayersDied) {
-            this.deadSnakesTimer += dt;
-            if (this.deadSnakesTimer >= 600) {
+            this._deadSnakesTimer += dt;
+            if (this._deadSnakesTimer >= 600) {
                 this.endGame();
                 return;
             }
         }
         else {
             //reset this timer, gives future possibility of reviving snakes or something
-            this.deadSnakesTimer = 0;
+            this._deadSnakesTimer = 0;
         }
         Object.values(this.getPlayers()).forEach(function (player) {
             player.snake.move(dt);
         });
-        this.collisionHandler.checkCollisions();
+        this._collisionHandler.checkCollisions();
+        this._powerupHandler.tick(dt);
+        this._powerupHandler.checkCollisions();
+    };
+    Room.prototype.toJSON = function () {
+        return {
+            gameState: this.gameState,
+            code: this._code,
+            host: this._host,
+            players: this._players,
+            maxSize: this._maxSize
+        };
     };
     return Room;
 }());

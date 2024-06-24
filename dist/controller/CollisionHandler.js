@@ -2,12 +2,12 @@ import ArcSegment from "../models/arcSegment.js";
 import LineSegment from "../models/lineSegment.js";
 var CollisionHandler = /** @class */ (function () {
     function CollisionHandler(snakes) {
-        this.snakes = snakes;
+        this._snakes = snakes;
     }
     CollisionHandler.prototype.checkCollisions = function () {
         var _this = this;
         //we will only check the head of snake1 against all other segments on the board (slow)
-        this.snakes.forEach(function (snake1) {
+        this._snakes.forEach(function (snake1) {
             //if the snake is dead ignore it
             if (!snake1.isAlive)
                 return;
@@ -19,7 +19,7 @@ var CollisionHandler = /** @class */ (function () {
                 snake1.kill();
                 // console.log(`snake ${snake1} commited circlicide`);
             }
-            _this.snakes.forEach(function (snake2) {
+            _this._snakes.forEach(function (snake2) {
                 snake2.segments.forEach(function (segment) {
                     //skip the checks if the segment is non collidable or if the segment is itself
                     if (!segment.isCollidable || segment === snake1.head)

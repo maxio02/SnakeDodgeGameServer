@@ -4,18 +4,18 @@ import ArcSegment from "../models/arcSegment.js";
 import LineSegment from "../models/lineSegment.js";
 
 export default class CollisionHandler {
-    private snakes: Snake[];
+    private _snakes: Snake[];
 
 
     constructor(snakes: Snake[]) {
-        this.snakes = snakes;
+        this._snakes = snakes;
     }
 
 
     public checkCollisions(): Snake {
 
         //we will only check the head of snake1 against all other segments on the board (slow)
-        this.snakes.forEach(snake1 => {
+        this._snakes.forEach(snake1 => {
             //if the snake is dead ignore it
             if (!snake1.isAlive) return;
 
@@ -28,7 +28,7 @@ export default class CollisionHandler {
                 // console.log(`snake ${snake1} commited circlicide`);
             }
 
-            this.snakes.forEach(snake2 => {
+            this._snakes.forEach(snake2 => {
 
                 snake2.segments.forEach(segment => {
 
