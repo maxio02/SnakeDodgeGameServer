@@ -33,10 +33,10 @@ var InputManager = /** @class */ (function () {
         else if (head instanceof ArcSegment) {
             tangentAngle = head.isCounterClockwise ? -Math.PI : Math.PI;
             if (turnDirection == 1 /* Dir.RIGHT */) {
-                this.snake.addSegment(new ArcSegment(new Vector(endPoint.x - this.snake.turnRadius * Math.cos(this.snake.head.endAngle + tangentAngle), endPoint.y - this.snake.turnRadius * Math.sin(this.snake.head.endAngle + tangentAngle)), this.snake.turnRadius, this.snake.head.endAngle - tangentAngle, this.snake.head.endAngle - tangentAngle, false, head.isCollidable));
+                this.snake.addSegment(new ArcSegment(new Vector(endPoint.x - this.snake.turnRadius * Math.cos(this.snake.head.endAngle + tangentAngle), endPoint.y - this.snake.turnRadius * Math.sin(this.snake.head.endAngle + tangentAngle)), this.snake.turnRadius, this.snake.head.endAngle + tangentAngle, this.snake.head.endAngle + tangentAngle, false, head.isCollidable));
             }
             if (turnDirection == 0 /* Dir.LEFT */) {
-                this.snake.addSegment(new ArcSegment(new Vector(endPoint.x - this.snake.turnRadius * Math.cos(this.snake.head.endAngle - tangentAngle), endPoint.y - this.snake.turnRadius * Math.sin(this.snake.head.endAngle - tangentAngle)), this.snake.turnRadius, this.snake.head.endAngle + tangentAngle, this.snake.head.endAngle + tangentAngle, true, head.isCollidable));
+                this.snake.addSegment(new ArcSegment(new Vector(endPoint.x - this.snake.turnRadius * Math.cos(this.snake.head.endAngle - tangentAngle), endPoint.y - this.snake.turnRadius * Math.sin(this.snake.head.endAngle - tangentAngle)), this.snake.turnRadius, this.snake.head.endAngle - tangentAngle, this.snake.head.endAngle - tangentAngle, true, head.isCollidable));
             }
         }
     };
@@ -53,7 +53,7 @@ var InputManager = /** @class */ (function () {
         else if (turnDirection == 1 /* Dir.RIGHT */ && head instanceof ArcSegment && !head.isCounterClockwise()) {
             angle += Math.PI / 2;
         }
-        this.snake.addSegment(new LineSegment(endPoint, new Vector(endPoint.x + 5 * Math.cos(angle), endPoint.y + 5 * Math.sin(angle)), head.isCollidable, angle));
+        this.snake.addSegment(new LineSegment(endPoint, new Vector(endPoint.x + Math.cos(angle), endPoint.y + Math.sin(angle)), head.isCollidable, angle));
         //console.log(this.snake.head);
     };
     return InputManager;

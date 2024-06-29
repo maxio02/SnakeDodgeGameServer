@@ -109,7 +109,13 @@ wss.on('connection', function connection(ws) {
     });
     ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
 });
-setInterval(function () {
+var timepassed = performance.now();
+var tickRate = 1000 / 100; // Targeting 60 ticks per second
+function gameLoop() {
+    var timeNow = performance.now();
+    var deltaTime = timeNow - timepassed;
+    // console.log(deltaTime);
+    timepassed = timeNow;
     for (var key in game.rooms) {
         if (game.rooms.hasOwnProperty(key)) {
             var room = game.rooms[key];
@@ -118,8 +124,11 @@ setInterval(function () {
                 continue;
             }
             room.broadcastGameTickToPlayers();
-            room.tick(1000 / 60 / 3);
+            room.tick(tickRate / 3); //TODO give actual time
         }
     }
-}, 1000 / 100);
+    setTimeout(gameLoop, tickRate);
+    // setImmediate(gameLoop);
+}
+gameLoop();
 //# sourceMappingURL=server.js.map

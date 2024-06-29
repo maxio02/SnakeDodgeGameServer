@@ -1,51 +1,50 @@
 import { Vector } from "vector2d";
-import Powerup from "../models/powerup.js";
-export var PowerupType;
-(function (PowerupType) {
-    PowerupType[PowerupType["SpeedUp"] = 0] = "SpeedUp";
-    PowerupType[PowerupType["SpeedDown"] = 1] = "SpeedDown";
-    PowerupType[PowerupType["Bomb"] = 2] = "Bomb";
-    PowerupType[PowerupType["FlipButtons"] = 3] = "FlipButtons";
-    PowerupType[PowerupType["Invisibility"] = 4] = "Invisibility";
-    PowerupType[PowerupType["PortalWalls"] = 5] = "PortalWalls";
-})(PowerupType || (PowerupType = {}));
+import Powerup, { PowerupType } from "../models/powerup.js";
 var PowerupHandler = /** @class */ (function () {
-    function PowerupHandler(snakes, avgTimeBetweenPowerups) {
+    function PowerupHandler(players, avgTimeBetweenPowerups, maxPowerupAmount, collisionHandler) {
         this._timeToNextPowerupSpawn = 10;
         this._powerups = {};
-        this._snakes = snakes;
+        this._powerupUpdate = [];
+        this._players = players;
         this._avgTimeBetweenPowerUps = avgTimeBetweenPowerups;
         this._powerupCounter = 0;
+        this._collisionHandler = collisionHandler;
+        this._maxPowerupAmount = maxPowerupAmount;
+        this._powerupUpdate = [];
     }
     PowerupHandler.prototype.tick = function (dt) {
-        if (this._timeToNextPowerupSpawn < 0) {
+        if (this._timeToNextPowerupSpawn < 0 && Object.keys(this._powerups).length < this._maxPowerupAmount) {
             this._timeToNextPowerupSpawn = Math.random() * this._avgTimeBetweenPowerUps * 2; //TODO add min amount probs  
-            this.addPowerup(
-            // new Powerup(
-            //   this._powerupCounter,
-            //   new Vector(Math.random() * 1600 + 200, Math.random() * 1600 + 200),
-            //   "#000000".replace(/0/g, function () {
-            //     return (~~(Math.random() * 10)).toString(16);
-            //   }),
-            //   this.getRandomPowerupType()
-            // )
-            new Powerup(this._powerupCounter, new Vector(Math.random() * 1600 + 200, Math.random() * 1600 + 200), "#000000".replace(/0/g, function () {
-                return (~~(Math.random() * 13)).toString(16);
-            }), this.getRandomPowerupType()));
+            var powerupType = this.getRandomPowerupType();
+            var powerupDuration = 0;
+            switch (powerupType) {
+                case PowerupType.PortalWalls:
+                    powerupDuration = 10000;
+                    break;
+                case PowerupType.CameraLockToPlayer:
+                    powerupDuration = 15000;
+                    break;
+                default:
+                    powerupDuration = 0;
+                    break;
+            }
+            this.addPowerup(new Powerup(this._powerupCounter, new Vector(Math.random() * 1800 + 100, Math.random() * 1800 + 100), "#000000".replace(/0/g, function () {
+                return (~~(Math.random() * 14)).toString(16);
+            }), powerupType, powerupDuration));
             this._powerupCounter++;
         }
         this._timeToNextPowerupSpawn -= dt;
     };
     PowerupHandler.prototype.addPowerup = function (powerup) {
-        this._powerupUpdate = { action: 1 /* PowerupAction.ADD */, powerup: powerup };
+        this._powerupUpdate.push({ action: 1 /* PowerupAction.SPAWN */, powerup: powerup, player: null });
         this._powerups[powerup.id] = powerup;
     };
     PowerupHandler.prototype.removePowerup = function (powerup) {
-        this._powerupUpdate = { action: 0 /* PowerupAction.REMOVE */, powerup: powerup };
+        this._powerupUpdate.push({ action: 0 /* PowerupAction.REMOVE */, powerup: powerup, player: null });
         delete this._powerups[powerup.id];
     };
     PowerupHandler.prototype.resetUpdate = function () {
-        this._powerupUpdate = null;
+        this._powerupUpdate = [];
     };
     Object.defineProperty(PowerupHandler.prototype, "powerupUpdate", {
         get: function () {
@@ -70,14 +69,34 @@ var PowerupHandler = /** @class */ (function () {
     };
     PowerupHandler.prototype.checkCollisions = function () {
         var _this = this;
-        this._snakes.forEach(function (snake) {
+        this._players.forEach(function (player) {
+            var snake = player.snake;
             //if the snake is dead ignore it
             if (!snake.isAlive)
                 return;
             Object.values(_this._powerups).forEach(function (powerup) {
                 if (_this.isPointInCircle(powerup.position, powerup.radius, snake.head.endPoint, 5)) {
-                    snake.applyPowerup(powerup);
-                    _this.removePowerup(powerup); //TODO fix removing in loop XD
+                    switch (powerup.type) {
+                        case PowerupType.PortalWalls:
+                            //only set the timeout if we are flipping the state, if another wrapWalls Is active then do not set another timeout //TODO this is wrong
+                            if (_this._collisionHandler.wrapWalls === false) {
+                                setTimeout(function () {
+                                    _this._collisionHandler.wrapWalls = false;
+                                }, powerup.duration);
+                            }
+                            _this._collisionHandler.wrapWalls = true;
+                            _this._powerupUpdate.push({ action: 2 /* PowerupAction.APPLY */, powerup: powerup, player: player });
+                            break;
+                        case PowerupType.FlipButtons:
+                            break;
+                        case PowerupType.CameraLockToPlayer:
+                            _this._powerupUpdate.push({ action: 2 /* PowerupAction.APPLY */, powerup: powerup, player: player });
+                            break;
+                        default:
+                            snake.applyPowerup(powerup);
+                            break;
+                    }
+                    _this.removePowerup(powerup);
                 }
             });
         });

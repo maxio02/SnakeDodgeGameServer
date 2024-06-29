@@ -7,14 +7,15 @@ import Powerup, { PowerupType } from "./powerup.js";
 export default class Snake {
   public segments: Segment[] = [];
   public isAlive: boolean = true;
-  public turnRadius: number = 90;
+  private _turnRadius: number = 90;
   private _distanceToChangeOfState: number = 10;
   private _speed = 1;
 
   constructor(startPos: LineSegment) {
     this.addSegment(startPos);
   }
-  addSegment(segment: Segment) {
+
+  public addSegment(segment: Segment) {
     this.segments.push(segment);
   }
 
@@ -22,21 +23,25 @@ export default class Snake {
     return this.segments.slice(-1).pop();
   }
 
+  get turnRadius(){
+    return this._turnRadius;
+  }
+
   public applyPowerup(powerup: Powerup) {
     //TODO apply constraints to the speed and radius, also add original speed or modification amount
     switch (powerup.type) {
       case PowerupType.SpeedUp:
         this._speed *= 1.2;
-        this.turnRadius *= 1.2;
+        this._turnRadius *= 1.2;
         break;
 
       case PowerupType.SpeedDown:
         this._speed *= 0.8;
-        this.turnRadius *= 0.8;
+        this._turnRadius *= 0.8;
         break;
 
       case PowerupType.Invisibility:
-        this._distanceToChangeOfState = 1000;
+        this._distanceToChangeOfState = 2000;
 
         const lastSegment = this.head;
 
@@ -73,8 +78,6 @@ export default class Snake {
     const lastSegment = this.head;
     if (!lastSegment) return;
     lastSegment.isNewThisTick = false;
-
-    this.checkWalls();
 
     //move the snake the correct amount, depending on the head segment
     if (lastSegment instanceof LineSegment) {
@@ -156,23 +159,5 @@ export default class Snake {
     this.isAlive = false;
   }
 
-  // TODO change the 2000 to something else
-  checkWalls() {
-    const lastSegment = this.head;
-    if (lastSegment.endPoint.x < 0) {
-      this.kill();
-      // this.addSegment(lastSegment.getContinuingSegment(new Vector(2000, 0)));
-    } else if (lastSegment.endPoint.x > 2000) {
-      this.kill();
-      // this.addSegment(lastSegment.getContinuingSegment(new Vector(-2000, 0)));
-    }
-
-    if (lastSegment.endPoint.y < 0) {
-      this.kill();
-      // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, 2000)));
-    } else if (lastSegment.endPoint.y > 2000) {
-      this.kill();
-      // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, -2000)));
-    }
-  }
+  
 }

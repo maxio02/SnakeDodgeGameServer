@@ -119,7 +119,7 @@ export class Room {
         });
 
         this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(player => player.snake));
-        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()).map(player => player.snake), 200);
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 400, 5, this._collisionHandler);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
 
@@ -159,7 +159,7 @@ export class Room {
             player.getWebSocket().send(JSON.stringify({
                 type: 'GAMEPLAY_DATA',
                 snakeHeads: snakeHeads,
-                powerUpInfo: powerupUpdate
+                powerupList: powerupUpdate
             }))
         });
         this._powerupHandler.resetUpdate()

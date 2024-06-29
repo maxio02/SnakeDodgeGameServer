@@ -6,7 +6,7 @@ var Snake = /** @class */ (function () {
     function Snake(startPos) {
         this.segments = [];
         this.isAlive = true;
-        this.turnRadius = 90;
+        this._turnRadius = 90;
         this._distanceToChangeOfState = 10;
         this._speed = 1;
         this.addSegment(startPos);
@@ -21,19 +21,26 @@ var Snake = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Snake.prototype, "turnRadius", {
+        get: function () {
+            return this._turnRadius;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Snake.prototype.applyPowerup = function (powerup) {
         //TODO apply constraints to the speed and radius, also add original speed or modification amount
         switch (powerup.type) {
             case PowerupType.SpeedUp:
                 this._speed *= 1.2;
-                this.turnRadius *= 1.2;
+                this._turnRadius *= 1.2;
                 break;
             case PowerupType.SpeedDown:
                 this._speed *= 0.8;
-                this.turnRadius *= 0.8;
+                this._turnRadius *= 0.8;
                 break;
             case PowerupType.Invisibility:
-                this._distanceToChangeOfState = 1000;
+                this._distanceToChangeOfState = 2000;
                 var lastSegment = this.head;
                 if (lastSegment instanceof LineSegment) {
                     this.addSegment(new LineSegment(lastSegment.endPoint, new Vector(lastSegment.endPoint.x, lastSegment.endPoint.y), false, lastSegment.endAngle));
@@ -53,7 +60,6 @@ var Snake = /** @class */ (function () {
         if (!lastSegment)
             return;
         lastSegment.isNewThisTick = false;
-        this.checkWalls();
         //move the snake the correct amount, depending on the head segment
         if (lastSegment instanceof LineSegment) {
             var dx = distance * Math.cos(lastSegment.endAngle) * this._speed;
@@ -92,26 +98,6 @@ var Snake = /** @class */ (function () {
     Snake.prototype.kill = function () {
         console.log("SNAKE DEAD");
         this.isAlive = false;
-    };
-    // TODO change the 2000 to something else
-    Snake.prototype.checkWalls = function () {
-        var lastSegment = this.head;
-        if (lastSegment.endPoint.x < 0) {
-            this.kill();
-            // this.addSegment(lastSegment.getContinuingSegment(new Vector(2000, 0)));
-        }
-        else if (lastSegment.endPoint.x > 2000) {
-            this.kill();
-            // this.addSegment(lastSegment.getContinuingSegment(new Vector(-2000, 0)));
-        }
-        if (lastSegment.endPoint.y < 0) {
-            this.kill();
-            // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, 2000)));
-        }
-        else if (lastSegment.endPoint.y > 2000) {
-            this.kill();
-            // this.addSegment(lastSegment.getContinuingSegment(new Vector(0, -2000)));
-        }
     };
     return Snake;
 }());

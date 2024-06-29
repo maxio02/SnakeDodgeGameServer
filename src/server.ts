@@ -131,8 +131,16 @@ wss.on('connection', function connection(ws: WebSocket) {
   ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
 });
 
+let timepassed = performance.now();
 
-setInterval(() => {
+const tickRate = 1000 / 100; // Targeting 60 ticks per second
+
+function gameLoop() {
+  let timeNow = performance.now();
+  let deltaTime = timeNow - timepassed;
+  // console.log(deltaTime);
+  timepassed = timeNow;
+
   for (const key in game.rooms) {
     if (game.rooms.hasOwnProperty(key)) {
       const room = game.rooms[key];
@@ -141,7 +149,13 @@ setInterval(() => {
         continue;
       }
       room.broadcastGameTickToPlayers();
-      room.tick(1000 / 60 / 3);
+      room.tick(tickRate / 3); //TODO give actual time
     }
   }
-}, 1000 / 100);
+
+  setTimeout(gameLoop, tickRate)
+
+  // setImmediate(gameLoop);
+}
+
+gameLoop()

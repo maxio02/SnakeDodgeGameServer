@@ -1,11 +1,14 @@
+import { Vector } from "vector2d";
 import ArcSegment from "../models/arcSegment.js";
 import LineSegment from "../models/lineSegment.js";
 var CollisionHandler = /** @class */ (function () {
     function CollisionHandler(snakes) {
+        this.wrapWalls = false;
         this._snakes = snakes;
     }
     CollisionHandler.prototype.checkCollisions = function () {
         var _this = this;
+        this.checkWalls();
         //we will only check the head of snake1 against all other segments on the board (slow)
         this._snakes.forEach(function (snake1) {
             //if the snake is dead ignore it
@@ -15,7 +18,8 @@ var CollisionHandler = /** @class */ (function () {
             if (!snake1.head.isCollidable)
                 return;
             //if the angle of the arc segment at the head exeeds 360 deg kill the snake
-            if (snake1.head instanceof ArcSegment && Math.abs(snake1.head.endAngle - snake1.head.startAngle) > 2 * Math.PI) {
+            if (snake1.head instanceof ArcSegment &&
+                Math.abs(snake1.head.endAngle - snake1.head.startAngle) > 2 * Math.PI) {
                 snake1.kill();
                 // console.log(`snake ${snake1} commited circlicide`);
             }
@@ -25,7 +29,8 @@ var CollisionHandler = /** @class */ (function () {
                     if (!segment.isCollidable || segment === snake1.head)
                         return;
                     //when turning ignore the line right before, should not be possible to hit it
-                    if (snake2 === snake1 && segment === snake1.segments.slice(-2, -1).pop())
+                    if (snake2 === snake1 &&
+                        segment === snake1.segments.slice(-2, -1).pop())
                         return;
                     if (segment instanceof LineSegment) {
                         if (_this.isPointOnLine(segment, snake1.head.endPoint, 0.5)) {
@@ -80,19 +85,43 @@ var CollisionHandler = /** @class */ (function () {
         //The isCounterClockwise check is for when the start to end has rolled over 2pi
         //TODO THIS IS WRONG
         if (normalizedStartAngle <= normalizedEndAngle) {
-            if (normalizedAngle >= normalizedStartAngle && normalizedAngle <= normalizedEndAngle && !arc.isCounterClockwise()) {
+            if (normalizedAngle >= normalizedStartAngle &&
+                normalizedAngle <= normalizedEndAngle &&
+                !arc.isCounterClockwise()) {
                 console.log("".concat(normalizedStartAngle, " < ").concat(normalizedAngle, " < ").concat(normalizedEndAngle));
                 return true;
             }
-            ;
         }
         else {
-            if (normalizedAngle >= normalizedEndAngle && normalizedAngle <= normalizedStartAngle && arc.isCounterClockwise()) {
+            if (normalizedAngle >= normalizedEndAngle &&
+                normalizedAngle <= normalizedStartAngle &&
+                arc.isCounterClockwise()) {
                 console.log("".concat(normalizedStartAngle, " > ").concat(normalizedAngle, " > ").concat(normalizedEndAngle));
                 return true;
             }
         }
         return false;
+    };
+    CollisionHandler.prototype.checkWalls = function () {
+        var _this = this;
+        Object.values(this._snakes).forEach(function (snake) {
+            if (!snake.isAlive)
+                return;
+            var lastSegment = snake.head;
+            //check all four boundries
+            if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > 2000 ||
+                lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > 2000) {
+                if (_this.wrapWalls) {
+                    // the new segment has to wrap either on x or y, if it does not on one of them then that coord is 0
+                    var newX = (lastSegment.endPoint.x < 0) ? 2000 : (lastSegment.endPoint.x > 2000) ? -2000 : 0;
+                    var newY = (lastSegment.endPoint.y < 0) ? 2000 : (lastSegment.endPoint.y > 2000) ? -2000 : 0;
+                    snake.addSegment(lastSegment.getContinuingSegment(new Vector(newX, newY)));
+                }
+                else {
+                    snake.kill();
+                }
+            }
+        });
     };
     return CollisionHandler;
 }());

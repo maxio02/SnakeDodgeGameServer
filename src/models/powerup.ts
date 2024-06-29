@@ -7,6 +7,7 @@ export enum PowerupType {
   FlipButtons,
   Invisibility,
   PortalWalls,
+  CameraLockToPlayer
 }
 
 export default class Powerup {
@@ -15,12 +16,14 @@ export default class Powerup {
   private _color: string;
   private _radius: number = 30;
   private _type: PowerupType;
+  private _duration: number;
 
-  constructor(id: number, position: Vector, color: string, type: PowerupType) {
+  constructor(id: number, position: Vector, color: string, type: PowerupType, duration: number) {
     this._id = id;
     this._position = position;
     this._color = color;
     this._type = type;
+    this._duration = duration;
   }
 
   public get id(): number {
@@ -39,13 +42,19 @@ export default class Powerup {
     return this._type;
   }
 
+  public get duration(): PowerupType {
+    return this._duration;
+  }
+
+
   toJSON() {
     return {
       id: this._id,
       position: {x: this.position.x, y: this.position.y},
       color: this._color,
       type: this._type,
-      radius: this._radius
+      radius: this._radius,
+      duration: this._duration
     };
   }
 }

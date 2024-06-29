@@ -6,14 +6,16 @@ export var PowerupType;
     PowerupType[PowerupType["FlipButtons"] = 3] = "FlipButtons";
     PowerupType[PowerupType["Invisibility"] = 4] = "Invisibility";
     PowerupType[PowerupType["PortalWalls"] = 5] = "PortalWalls";
+    PowerupType[PowerupType["CameraLockToPlayer"] = 6] = "CameraLockToPlayer";
 })(PowerupType || (PowerupType = {}));
 var Powerup = /** @class */ (function () {
-    function Powerup(id, position, color, type) {
+    function Powerup(id, position, color, type, duration) {
         this._radius = 30;
         this._id = id;
         this._position = position;
         this._color = color;
         this._type = type;
+        this._duration = duration;
     }
     Object.defineProperty(Powerup.prototype, "id", {
         get: function () {
@@ -43,13 +45,21 @@ var Powerup = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Powerup.prototype, "duration", {
+        get: function () {
+            return this._duration;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Powerup.prototype.toJSON = function () {
         return {
             id: this._id,
             position: { x: this.position.x, y: this.position.y },
             color: this._color,
             type: this._type,
-            radius: this._radius
+            radius: this._radius,
+            duration: this._duration
         };
     };
     return Powerup;
