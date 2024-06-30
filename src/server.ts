@@ -136,7 +136,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
 let timepassed = performance.now();
 
-const tickRate = 1000 / 100; // Targeting 60 ticks per second
+const tickRate = 1000 / 70; // Targeting 60 ticks per second
 
 function gameLoop() {
   let timeNow = performance.now();
