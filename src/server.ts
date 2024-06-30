@@ -4,9 +4,12 @@ import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
 import { GameState, Room, addPlayerResult } from './models/room.js';
 
+const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: port });
 const game = new Game();
+
+
 
 function removePlayerFromRoom(ws: WebSocket) {
   for (const roomCode in game.rooms) {
