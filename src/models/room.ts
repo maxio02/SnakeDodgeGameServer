@@ -31,8 +31,10 @@ export class Room {
     private _deadSnakesTimer: number = 0;
     private _playersToBeRemoved: Player[] = [];
     private _powerupHandler: PowerupHandler;
+    private _tickCount = 0;
+    private _isPaused = false;
 
-    constructor(code: string, host: Player, maxSize: number = 4) {
+    constructor(code: string, host: Player, maxSize: number = 2) {
         this._code = code;
         this._host = host;
         this._maxSize = maxSize;
@@ -119,7 +121,7 @@ export class Room {
         });
 
         this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(player => player.snake));
-        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 400, 5, this._collisionHandler);
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 2200, 7, this._collisionHandler);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
 
@@ -138,12 +140,13 @@ export class Room {
             player.isReady = false;
         });
         this.broadcastLobbyInfoToPlayers();
-
+        this._tickCount = 0;
         //TODO fix the entire resetting sequence
         this.gameState = GameState.IN_LOBBY;
     }
 
     public broadcastGameTickToPlayers() {
+        if(!this._isPaused){
 
         let snakeHeads = Object.values(this.getPlayers())
             .filter(player => player.snake.isAlive)
@@ -164,6 +167,7 @@ export class Room {
         });
         this._powerupHandler.resetUpdate()
     }
+    }
 
     public broadcastLobbyInfoToPlayers() {
         Object.values(this.getPlayers()).forEach(player => {
@@ -178,6 +182,16 @@ export class Room {
     }
 
     public tick(dt: number) {
+        //a very dumb way to stop the server from ticking before the end of animation on the clint side
+        //TODO think of a better solution
+        if(this._tickCount === 0){
+            this._isPaused = true;
+            setTimeout(() => {
+                this._isPaused = false;
+                this._tickCount ++;
+            }, 2200)
+        }
+        if(!this._isPaused){
         let allPlayersDied = Object.values(this.getPlayers()).every(player => !player.snake.isAlive);
 
         if (allPlayersDied) {
@@ -196,6 +210,9 @@ export class Room {
         this._collisionHandler.checkCollisions()
         this._powerupHandler.tick(dt);
         this._powerupHandler.checkCollisions();
+
+        this._tickCount ++;
+    }
     }
 
     toJSON() {

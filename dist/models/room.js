@@ -6,11 +6,13 @@ import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
 var Room = /** @class */ (function () {
     function Room(code, host, maxSize) {
-        if (maxSize === void 0) { maxSize = 4; }
+        if (maxSize === void 0) { maxSize = 2; }
         this._players = {};
         this.gameState = 1 /* GameState.IN_LOBBY */;
         this._deadSnakesTimer = 0;
         this._playersToBeRemoved = [];
+        this._tickCount = 0;
+        this._isPaused = false;
         this._code = code;
         this._host = host;
         this._maxSize = maxSize;
@@ -80,7 +82,7 @@ var Room = /** @class */ (function () {
             player.inputManager = new InputManager(player.snake);
         });
         this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }));
-        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 400, 5, this._collisionHandler);
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 2200, 7, this._collisionHandler);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
     };
@@ -95,27 +97,30 @@ var Room = /** @class */ (function () {
             player.isReady = false;
         });
         this.broadcastLobbyInfoToPlayers();
+        this._tickCount = 0;
         //TODO fix the entire resetting sequence
         this.gameState = 1 /* GameState.IN_LOBBY */;
     };
     Room.prototype.broadcastGameTickToPlayers = function () {
-        var snakeHeads = Object.values(this.getPlayers())
-            .filter(function (player) { return player.snake.isAlive; })
-            .map(function (player) { return ({
-            username: player.username,
-            lastSegment: player.snake.head,
-            segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
-        }); });
-        var powerupUpdate = this._powerupHandler.powerupUpdate;
-        Object.values(this.getPlayers()).forEach(function (player) {
-            //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
-            player.getWebSocket().send(JSON.stringify({
-                type: 'GAMEPLAY_DATA',
-                snakeHeads: snakeHeads,
-                powerupList: powerupUpdate
-            }));
-        });
-        this._powerupHandler.resetUpdate();
+        if (!this._isPaused) {
+            var snakeHeads_1 = Object.values(this.getPlayers())
+                .filter(function (player) { return player.snake.isAlive; })
+                .map(function (player) { return ({
+                username: player.username,
+                lastSegment: player.snake.head,
+                segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
+            }); });
+            var powerupUpdate_1 = this._powerupHandler.powerupUpdate;
+            Object.values(this.getPlayers()).forEach(function (player) {
+                //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
+                player.getWebSocket().send(JSON.stringify({
+                    type: 'GAMEPLAY_DATA',
+                    snakeHeads: snakeHeads_1,
+                    powerupList: powerupUpdate_1
+                }));
+            });
+            this._powerupHandler.resetUpdate();
+        }
     };
     Room.prototype.broadcastLobbyInfoToPlayers = function () {
         var _this = this;
@@ -130,24 +135,37 @@ var Room = /** @class */ (function () {
         });
     };
     Room.prototype.tick = function (dt) {
-        var allPlayersDied = Object.values(this.getPlayers()).every(function (player) { return !player.snake.isAlive; });
-        if (allPlayersDied) {
-            this._deadSnakesTimer += dt;
-            if (this._deadSnakesTimer >= 600) {
-                this.endGame();
-                return;
+        var _this = this;
+        //a very dumb way to stop the server from ticking before the end of animation on the clint side
+        //TODO think of a better solution
+        if (this._tickCount === 0) {
+            this._isPaused = true;
+            setTimeout(function () {
+                _this._isPaused = false;
+                _this._tickCount++;
+            }, 2200);
+        }
+        if (!this._isPaused) {
+            var allPlayersDied = Object.values(this.getPlayers()).every(function (player) { return !player.snake.isAlive; });
+            if (allPlayersDied) {
+                this._deadSnakesTimer += dt;
+                if (this._deadSnakesTimer >= 600) {
+                    this.endGame();
+                    return;
+                }
             }
+            else {
+                //reset this timer, gives future possibility of reviving snakes or something
+                this._deadSnakesTimer = 0;
+            }
+            Object.values(this.getPlayers()).forEach(function (player) {
+                player.snake.move(dt);
+            });
+            this._collisionHandler.checkCollisions();
+            this._powerupHandler.tick(dt);
+            this._powerupHandler.checkCollisions();
+            this._tickCount++;
         }
-        else {
-            //reset this timer, gives future possibility of reviving snakes or something
-            this._deadSnakesTimer = 0;
-        }
-        Object.values(this.getPlayers()).forEach(function (player) {
-            player.snake.move(dt);
-        });
-        this._collisionHandler.checkCollisions();
-        this._powerupHandler.tick(dt);
-        this._powerupHandler.checkCollisions();
     };
     Room.prototype.toJSON = function () {
         return {

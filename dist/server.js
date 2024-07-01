@@ -2,7 +2,8 @@ import { WebSocketServer } from 'ws';
 import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
-var wss = new WebSocketServer({ port: 8080 });
+var port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+var wss = new WebSocketServer({ port: port });
 var game = new Game();
 function removePlayerFromRoom(ws) {
     var _loop_1 = function (roomCode) {
@@ -30,7 +31,7 @@ function removePlayerFromRoom(ws) {
 }
 wss.on('connection', function connection(ws) {
     ws.on('message', function message(rawdata) {
-        console.log('received: %s', rawdata);
+        // console.log('received: %s', rawdata);
         var message = JSON.parse(rawdata.toString());
         switch (message.type) {
             case 'BEGIN_GAME':
@@ -110,7 +111,7 @@ wss.on('connection', function connection(ws) {
     ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
 });
 var timepassed = performance.now();
-var tickRate = 1000 / 100; // Targeting 60 ticks per second
+var tickRate = 1000 / 70; // Targeting 60 ticks per second
 function gameLoop() {
     var timeNow = performance.now();
     var deltaTime = timeNow - timepassed;
@@ -124,7 +125,7 @@ function gameLoop() {
                 continue;
             }
             room.broadcastGameTickToPlayers();
-            room.tick(tickRate / 3); //TODO give actual time
+            room.tick(deltaTime);
         }
     }
     setTimeout(gameLoop, tickRate);

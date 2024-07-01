@@ -27,7 +27,6 @@ export default class CollisionHandler {
         Math.abs(snake1.head.endAngle - snake1.head.startAngle) > 2 * Math.PI
       ) {
         snake1.kill();
-        // console.log(`snake ${snake1} commited circlicide`);
       }
 
       this._snakes.forEach((snake2) => {
@@ -44,13 +43,11 @@ export default class CollisionHandler {
 
           if (segment instanceof LineSegment) {
             if (this.isPointOnLine(segment, snake1.head.endPoint, 0.5)) {
-              console.log(segment);
               snake1.kill();
               return;
             }
           } else if (segment instanceof ArcSegment) {
             if (this.isPointOnArc(segment, snake1.head.endPoint, 5)) {
-              console.log(segment);
               snake1.kill();
               return;
             }
@@ -108,9 +105,6 @@ export default class CollisionHandler {
         normalizedAngle <= normalizedEndAngle &&
         !arc.isCounterClockwise()
       ) {
-        console.log(
-          `${normalizedStartAngle} < ${normalizedAngle} < ${normalizedEndAngle}`
-        );
         return true;
       }
     } else {
@@ -119,9 +113,6 @@ export default class CollisionHandler {
         normalizedAngle <= normalizedStartAngle &&
         arc.isCounterClockwise()
       ) {
-        console.log(
-          `${normalizedStartAngle} > ${normalizedAngle} > ${normalizedEndAngle}`
-        );
         return true;
       }
     }

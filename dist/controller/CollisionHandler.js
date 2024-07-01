@@ -21,7 +21,6 @@ var CollisionHandler = /** @class */ (function () {
             if (snake1.head instanceof ArcSegment &&
                 Math.abs(snake1.head.endAngle - snake1.head.startAngle) > 2 * Math.PI) {
                 snake1.kill();
-                // console.log(`snake ${snake1} commited circlicide`);
             }
             _this._snakes.forEach(function (snake2) {
                 snake2.segments.forEach(function (segment) {
@@ -34,14 +33,12 @@ var CollisionHandler = /** @class */ (function () {
                         return;
                     if (segment instanceof LineSegment) {
                         if (_this.isPointOnLine(segment, snake1.head.endPoint, 0.5)) {
-                            console.log(segment);
                             snake1.kill();
                             return;
                         }
                     }
                     else if (segment instanceof ArcSegment) {
                         if (_this.isPointOnArc(segment, snake1.head.endPoint, 5)) {
-                            console.log(segment);
                             snake1.kill();
                             return;
                         }
@@ -88,7 +85,6 @@ var CollisionHandler = /** @class */ (function () {
             if (normalizedAngle >= normalizedStartAngle &&
                 normalizedAngle <= normalizedEndAngle &&
                 !arc.isCounterClockwise()) {
-                console.log("".concat(normalizedStartAngle, " < ").concat(normalizedAngle, " < ").concat(normalizedEndAngle));
                 return true;
             }
         }
@@ -96,7 +92,6 @@ var CollisionHandler = /** @class */ (function () {
             if (normalizedAngle >= normalizedEndAngle &&
                 normalizedAngle <= normalizedStartAngle &&
                 arc.isCounterClockwise()) {
-                console.log("".concat(normalizedStartAngle, " > ").concat(normalizedAngle, " > ").concat(normalizedEndAngle));
                 return true;
             }
         }

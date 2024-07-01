@@ -37,7 +37,7 @@ function removePlayerFromRoom(ws: WebSocket) {
 
 wss.on('connection', function connection(ws: WebSocket) {
   ws.on('message', function message(rawdata) {
-    console.log('received: %s', rawdata);
+    // console.log('received: %s', rawdata);
 
     const message = JSON.parse(rawdata.toString());
 
@@ -152,7 +152,7 @@ function gameLoop() {
         continue;
       }
       room.broadcastGameTickToPlayers();
-      room.tick(tickRate / 3); //TODO give actual time
+      room.tick(deltaTime);
     }
   }
 

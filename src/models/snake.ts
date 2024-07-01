@@ -8,8 +8,8 @@ export default class Snake {
   public segments: Segment[] = [];
   public isAlive: boolean = true;
   private _turnRadius: number = 90;
-  private _distanceToChangeOfState: number = 10;
-  private _speed = 1;
+  private _timeToChangeOfState: number = Math.random() * 2500 + 350;
+  private _speed = 0.3;
 
   constructor(startPos: LineSegment) {
     this.addSegment(startPos);
@@ -32,16 +32,16 @@ export default class Snake {
     switch (powerup.type) {
       case PowerupType.SpeedUp:
         this._speed *= 1.2;
-        this._turnRadius *= 1.2;
+        this._turnRadius *= 1.1;
         break;
 
       case PowerupType.SpeedDown:
         this._speed *= 0.8;
-        this._turnRadius *= 0.8;
+        this._turnRadius *= 0.9;
         break;
 
       case PowerupType.Invisibility:
-        this._distanceToChangeOfState = 2000;
+        this._timeToChangeOfState = 6000;
 
         const lastSegment = this.head;
 
@@ -70,7 +70,7 @@ export default class Snake {
     }
   }
 
-  move(distance: number) {
+  move(dt: number) {
     //do not move is dead, simple
     if (!this.isAlive) return;
 
@@ -81,8 +81,8 @@ export default class Snake {
 
     //move the snake the correct amount, depending on the head segment
     if (lastSegment instanceof LineSegment) {
-      const dx = distance * Math.cos(lastSegment.endAngle) * this._speed;
-      const dy = distance * Math.sin(lastSegment.endAngle) * this._speed;
+      const dx =  dt * Math.cos(lastSegment.endAngle) * this._speed;
+      const dy =  dt * Math.sin(lastSegment.endAngle) * this._speed;
 
       const newEnd = new Vector(
         lastSegment.endPoint.x + dx,
@@ -90,7 +90,7 @@ export default class Snake {
       );
       lastSegment.endPoint = newEnd;
     } else if (lastSegment instanceof ArcSegment) {
-      const angleExtension = distance * this._speed / lastSegment.radius;
+      const angleExtension = dt * this._speed / lastSegment.radius;
 
       lastSegment.endAngle = lastSegment.isCounterClockwise()
         ? lastSegment.endAngle - angleExtension
@@ -98,8 +98,8 @@ export default class Snake {
     }
 
     //add new segment lastsegment.createflippedstate
-    if (lastSegment.isCollidable && this._distanceToChangeOfState < 0) {
-      this._distanceToChangeOfState = Math.random() * 80 + 30; // 40-90
+    if (lastSegment.isCollidable && this._timeToChangeOfState < 0) {
+      this._timeToChangeOfState = Math.random() * 280 + 150; // 40-90
 
       if (lastSegment instanceof LineSegment) {
         this.addSegment(
@@ -124,8 +124,8 @@ export default class Snake {
       }
     }
 
-    if (!lastSegment.isCollidable && this._distanceToChangeOfState < 0) {
-      this._distanceToChangeOfState = Math.random() * 500 + 80; // 80-320
+    if (!lastSegment.isCollidable && this._timeToChangeOfState < 0) {
+      this._timeToChangeOfState = Math.random() * 2500 + 350; // 80-320
 
       if (lastSegment instanceof LineSegment) {
         this.addSegment(
@@ -150,12 +150,10 @@ export default class Snake {
       }
     }
 
-    //update the distance travelled
-    this._distanceToChangeOfState -= distance;
+    this._timeToChangeOfState -= dt;
   }
 
   kill() {
-    console.log("SNAKE DEAD");
     this.isAlive = false;
   }
 

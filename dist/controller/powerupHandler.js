@@ -13,8 +13,10 @@ var PowerupHandler = /** @class */ (function () {
         this._powerupUpdate = [];
     }
     PowerupHandler.prototype.tick = function (dt) {
-        if (this._timeToNextPowerupSpawn < 0 && Object.keys(this._powerups).length < this._maxPowerupAmount) {
-            this._timeToNextPowerupSpawn = Math.random() * this._avgTimeBetweenPowerUps * 2; //TODO add min amount probs  
+        if (this._timeToNextPowerupSpawn < 0 &&
+            Object.keys(this._powerups).length < this._maxPowerupAmount) {
+            this._timeToNextPowerupSpawn =
+                Math.random() * this._avgTimeBetweenPowerUps * 2; //TODO add min amount probs
             var powerupType = this.getRandomPowerupType();
             var powerupDuration = 0;
             switch (powerupType) {
@@ -33,14 +35,24 @@ var PowerupHandler = /** @class */ (function () {
             }), powerupType, powerupDuration));
             this._powerupCounter++;
         }
-        this._timeToNextPowerupSpawn -= dt;
+        if (Object.keys(this._powerups).length < this._maxPowerupAmount) {
+            this._timeToNextPowerupSpawn -= dt;
+        }
     };
     PowerupHandler.prototype.addPowerup = function (powerup) {
-        this._powerupUpdate.push({ action: 1 /* PowerupAction.SPAWN */, powerup: powerup, player: null });
+        this._powerupUpdate.push({
+            action: 1 /* PowerupAction.SPAWN */,
+            powerup: powerup,
+            player: null,
+        });
         this._powerups[powerup.id] = powerup;
     };
     PowerupHandler.prototype.removePowerup = function (powerup) {
-        this._powerupUpdate.push({ action: 0 /* PowerupAction.REMOVE */, powerup: powerup, player: null });
+        this._powerupUpdate.push({
+            action: 0 /* PowerupAction.REMOVE */,
+            powerup: powerup,
+            player: null,
+        });
         delete this._powerups[powerup.id];
     };
     PowerupHandler.prototype.resetUpdate = function () {
@@ -74,6 +86,7 @@ var PowerupHandler = /** @class */ (function () {
             //if the snake is dead ignore it
             if (!snake.isAlive)
                 return;
+            //Check the powerup collisions
             Object.values(_this._powerups).forEach(function (powerup) {
                 if (_this.isPointInCircle(powerup.position, powerup.radius, snake.head.endPoint, 5)) {
                     switch (powerup.type) {
@@ -85,12 +98,20 @@ var PowerupHandler = /** @class */ (function () {
                                 }, powerup.duration);
                             }
                             _this._collisionHandler.wrapWalls = true;
-                            _this._powerupUpdate.push({ action: 2 /* PowerupAction.APPLY */, powerup: powerup, player: player });
+                            _this._powerupUpdate.push({
+                                action: 2 /* PowerupAction.APPLY */,
+                                powerup: powerup,
+                                player: player,
+                            });
                             break;
                         case PowerupType.FlipButtons:
                             break;
                         case PowerupType.CameraLockToPlayer:
-                            _this._powerupUpdate.push({ action: 2 /* PowerupAction.APPLY */, powerup: powerup, player: player });
+                            _this._powerupUpdate.push({
+                                action: 2 /* PowerupAction.APPLY */,
+                                powerup: powerup,
+                                player: player,
+                            });
                             break;
                         default:
                             snake.applyPowerup(powerup);
