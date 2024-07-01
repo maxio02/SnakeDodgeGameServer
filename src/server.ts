@@ -6,7 +6,21 @@ import { GameState, Room, addPlayerResult } from './models/room.js';
 
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-const wss = new WebSocketServer({ port: port });
+const allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
+
+const wss = new WebSocketServer({
+  port: port,
+  verifyClient: (info, done) => {
+    const origin = info.origin;
+    if (allowedOrigins.includes(origin)) {
+      done(true);
+    } else {
+      done(false, 403, 'Forbidden');
+    }
+  }
+});
+// const wss = new WebSocketServer({ port: port });
+
 const game = new Game();
 
 

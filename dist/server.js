@@ -3,7 +3,20 @@ import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
 var port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-var wss = new WebSocketServer({ port: port });
+var allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
+var wss = new WebSocketServer({
+    port: port,
+    verifyClient: function (info, done) {
+        var origin = info.origin;
+        if (allowedOrigins.includes(origin)) {
+            done(true);
+        }
+        else {
+            done(false, 403, 'Forbidden');
+        }
+    }
+});
+// const wss = new WebSocketServer({ port: port });
 var game = new Game();
 function removePlayerFromRoom(ws) {
     var _loop_1 = function (roomCode) {
