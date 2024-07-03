@@ -91,18 +91,26 @@ var PowerupHandler = /** @class */ (function () {
                 if (_this.isPointInCircle(powerup.position, powerup.radius, snake.head.endPoint, 5)) {
                     switch (powerup.type) {
                         case PowerupType.PortalWalls:
-                            //only set the timeout if we are flipping the state, if another wrapWalls Is active then do not set another timeout //TODO this is wrong
-                            if (_this._collisionHandler.wrapWalls === false) {
-                                setTimeout(function () {
-                                    _this._collisionHandler.wrapWalls = false;
-                                }, powerup.duration);
+                            if (_this._wrapWallsTimeoutId) {
+                                clearTimeout(_this._wrapWallsTimeoutId);
                             }
-                            _this._collisionHandler.wrapWalls = true;
-                            _this._powerupUpdate.push({
-                                action: 2 /* PowerupAction.APPLY */,
-                                powerup: powerup,
-                                player: player,
-                            });
+                            if (_this._collisionHandler.wrapWalls === false) {
+                                _this._collisionHandler.wrapWalls = true;
+                                _this._powerupUpdate.push({
+                                    action: 2 /* PowerupAction.APPLY */,
+                                    powerup: powerup,
+                                    player: player,
+                                });
+                            }
+                            // Schedule the wrapWalls to be set to false after the powerup duration
+                            _this._wrapWallsTimeoutId = setTimeout(function () {
+                                _this._collisionHandler.wrapWalls = false;
+                                _this._powerupUpdate.push({
+                                    action: 2 /* PowerupAction.APPLY */,
+                                    powerup: powerup,
+                                    player: player,
+                                });
+                            }, powerup.duration);
                             break;
                         case PowerupType.FlipButtons:
                             break;

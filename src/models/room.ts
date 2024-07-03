@@ -13,11 +13,13 @@ export const enum GameState {
     FINISHED
 }
 
-export const enum addPlayerResult {
+export const enum joinResult {
+    ROOM_DOES_NOT_EXIST,
     ROOM_FULL,
     GAME_RUNNING,
     PLAYER_ALREADY_EXISTS,
     SUCCESS
+
 }
 
 export class Room {
@@ -34,32 +36,32 @@ export class Room {
     private _tickCount = 0;
     private _isPaused = false;
 
-    constructor(code: string, host: Player, maxSize: number = 2) {
+    constructor(code: string, host: Player, maxSize: number = 6) {
         this._code = code;
         this._host = host;
         this._maxSize = maxSize;
         this.addPlayer(host);
     }
 
-    public addPlayer(player: Player): addPlayerResult {
+    public addPlayer(player: Player): joinResult {
 
         //do not allow players to join if the game is in progress
         if (this.gameState != GameState.IN_LOBBY) {
-            return addPlayerResult.GAME_RUNNING;
+            return joinResult.GAME_RUNNING;
         }
 
         //if there is a player named the same also do not allow to join
         if (Object.values(this._players).some(p => p.username === player.username)) {
-            return addPlayerResult.PLAYER_ALREADY_EXISTS;
+            return joinResult.PLAYER_ALREADY_EXISTS;
         }
 
         //if the room is full also do not allow to join
         if (Object.keys(this._players).length >= this._maxSize) {
-            return addPlayerResult.ROOM_FULL;
+            return joinResult.ROOM_FULL;
         }
 
         this._players[player.username] = player;
-        return addPlayerResult.SUCCESS;
+        return joinResult.SUCCESS;
     }
 
     public removePlayer(player: Player): boolean {
@@ -152,7 +154,7 @@ export class Room {
             .filter(player => player.snake.isAlive)
             .map(player => ({
                 username: player.username,
-                lastSegment: player.snake.head,
+                lastSegment: player.snake.head.toMessageFormat(),
                 segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
             }))
 
