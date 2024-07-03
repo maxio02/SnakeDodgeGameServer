@@ -27,11 +27,13 @@ var LineSegment = /** @class */ (function (_super) {
         return _this;
     }
     LineSegment.prototype.calcEndAngle = function () {
-        return Math.atan((this.endPoint.y - this.startPoint.y) / (this.endPoint.x - this.startPoint.x));
+        return Math.atan((this.endPoint.y - this.startPoint.y) /
+            (this.endPoint.x - this.startPoint.x));
     };
     Object.defineProperty(LineSegment.prototype, "length", {
         get: function () {
-            return Math.sqrt(Math.pow((this.startPoint.x - this.endPoint.x), 2) + Math.pow((this.startPoint.y - this.endPoint.y), 2));
+            return Math.sqrt(Math.pow((this.startPoint.x - this.endPoint.x), 2) +
+                Math.pow((this.startPoint.y - this.endPoint.y), 2));
         },
         enumerable: false,
         configurable: true
@@ -40,14 +42,21 @@ var LineSegment = /** @class */ (function (_super) {
         var transformedEndpoint = this.endPoint.clone().add(transform);
         return new LineSegment(transformedEndpoint, transformedEndpoint, this.isCollidable, this.endAngle);
     };
-    LineSegment.prototype.toJSON = function () {
-        return {
-            startPoint: { x: this.startPoint.x, y: this.startPoint.y },
-            endPoint: { x: this.endPoint.x, y: this.endPoint.y },
-            endAngle: this.endAngle,
-            isCollidable: this.isCollidable,
-            isNewThisTick: this.isNewThisTick
-        };
+    LineSegment.prototype.toMessageFormat = function () {
+        if (this.isNewThisTick) {
+            return {
+                startPoint: { x: this.startPoint.x, y: this.startPoint.y },
+                endPoint: { x: this.endPoint.x, y: this.endPoint.y },
+                endAngle: this.endAngle,
+                isCollidable: this.isCollidable,
+                isNewThisTick: this.isNewThisTick,
+            };
+        }
+        else {
+            return {
+                endPoint: { x: this.endPoint.x, y: this.endPoint.y },
+            };
+        }
     };
     return LineSegment;
 }(Segment));

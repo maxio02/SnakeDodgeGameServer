@@ -16,6 +16,7 @@ export default class PowerupHandler {
   private _powerups: { [key: number]: Powerup } = {};
   private _effectZones: {};
   private _powerupCounter: number;
+  private _wrapWallsTimeoutId: NodeJS.Timeout;
   private _powerupUpdate: {
     action: PowerupAction;
     powerup: Powerup;
@@ -143,20 +144,28 @@ export default class PowerupHandler {
         ) {
           switch (powerup.type) {
             case PowerupType.PortalWalls:
-              //only set the timeout if we are flipping the state, if another wrapWalls Is active then do not set another timeout //TODO this is wrong
-              if (this._collisionHandler.wrapWalls === false) {
-                setTimeout(() => {
-                  this._collisionHandler.wrapWalls = false;
-                }, powerup.duration);
+              if (this._wrapWallsTimeoutId) {
+                clearTimeout(this._wrapWallsTimeoutId);
               }
 
+              if(this._collisionHandler.wrapWalls === false){
               this._collisionHandler.wrapWalls = true;
-
               this._powerupUpdate.push({
                 action: PowerupAction.APPLY,
                 powerup,
-                player: player,
+                player,
               });
+              }
+            
+              // Schedule the wrapWalls to be set to false after the powerup duration
+              this._wrapWallsTimeoutId = setTimeout(() => {
+                this._collisionHandler.wrapWalls = false;
+                this._powerupUpdate.push({
+                  action: PowerupAction.APPLY,
+                  powerup,
+                  player,
+                });
+              }, powerup.duration);
               break;
             case PowerupType.FlipButtons:
               break;

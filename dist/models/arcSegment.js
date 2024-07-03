@@ -13,8 +13,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-import * as Vec2D from 'vector2d';
-import Segment from './segment.js';
+import * as Vec2D from "vector2d";
+import Segment from "./segment.js";
 var ArcSegment = /** @class */ (function (_super) {
     __extends(ArcSegment, _super);
     function ArcSegment(center, radius, startAngle, endAngle, counterClockwise, isCollidable) {
@@ -37,14 +37,18 @@ var ArcSegment = /** @class */ (function (_super) {
     });
     Object.defineProperty(ArcSegment.prototype, "penpendicularEndAngle", {
         get: function () {
-            return this.isCounterClockwise ? this.endAngle - Math.PI / 2 : this.endAngle + Math.PI / 2;
+            return this.isCounterClockwise
+                ? this.endAngle - Math.PI / 2
+                : this.endAngle + Math.PI / 2;
         },
         enumerable: false,
         configurable: true
     });
     Object.defineProperty(ArcSegment.prototype, "penpendicularStartAngle", {
         get: function () {
-            return this.isCounterClockwise ? this.startAngle - Math.PI / 2 : this.startAngle + Math.PI / 2;
+            return this.isCounterClockwise
+                ? this.startAngle - Math.PI / 2
+                : this.startAngle + Math.PI / 2;
         },
         enumerable: false,
         configurable: true
@@ -65,8 +69,26 @@ var ArcSegment = /** @class */ (function (_super) {
             counterClockwise: this.counterClockwise,
             isCollidable: this.isCollidable,
             isNewThisTick: this.isNewThisTick,
-            endPoint: { x: endPoint.x, y: endPoint.y }
+            endPoint: { x: endPoint.x, y: endPoint.y },
         };
+    };
+    ArcSegment.prototype.toMessageFormat = function () {
+        if (this.isNewThisTick) {
+            return {
+                center: { x: this.center.x, y: this.center.y },
+                radius: this.radius,
+                startAngle: this.startAngle,
+                endAngle: this.endAngle,
+                counterClockwise: this.counterClockwise,
+                isCollidable: this.isCollidable,
+                isNewThisTick: this.isNewThisTick,
+            };
+        }
+        else {
+            return {
+                endAngle: this.endAngle,
+            };
+        }
     };
     return ArcSegment;
 }(Segment));

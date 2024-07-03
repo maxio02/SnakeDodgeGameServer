@@ -6,7 +6,7 @@ import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
 var Room = /** @class */ (function () {
     function Room(code, host, maxSize) {
-        if (maxSize === void 0) { maxSize = 2; }
+        if (maxSize === void 0) { maxSize = 6; }
         this._players = {};
         this.gameState = 1 /* GameState.IN_LOBBY */;
         this._deadSnakesTimer = 0;
@@ -21,18 +21,18 @@ var Room = /** @class */ (function () {
     Room.prototype.addPlayer = function (player) {
         //do not allow players to join if the game is in progress
         if (this.gameState != 1 /* GameState.IN_LOBBY */) {
-            return 1 /* addPlayerResult.GAME_RUNNING */;
+            return 2 /* joinResult.GAME_RUNNING */;
         }
         //if there is a player named the same also do not allow to join
         if (Object.values(this._players).some(function (p) { return p.username === player.username; })) {
-            return 2 /* addPlayerResult.PLAYER_ALREADY_EXISTS */;
+            return 3 /* joinResult.PLAYER_ALREADY_EXISTS */;
         }
         //if the room is full also do not allow to join
         if (Object.keys(this._players).length >= this._maxSize) {
-            return 0 /* addPlayerResult.ROOM_FULL */;
+            return 1 /* joinResult.ROOM_FULL */;
         }
         this._players[player.username] = player;
-        return 3 /* addPlayerResult.SUCCESS */;
+        return 4 /* joinResult.SUCCESS */;
     };
     Room.prototype.removePlayer = function (player) {
         //if the game is not in the in_lobby state instead of deleting the player add him to the queue to be deleted once the game finishes 
@@ -107,7 +107,7 @@ var Room = /** @class */ (function () {
                 .filter(function (player) { return player.snake.isAlive; })
                 .map(function (player) { return ({
                 username: player.username,
-                lastSegment: player.snake.head,
+                lastSegment: player.snake.head.toMessageFormat(),
                 segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
             }); });
             var powerupUpdate_1 = this._powerupHandler.powerupUpdate;

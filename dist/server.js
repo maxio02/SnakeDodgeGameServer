@@ -26,7 +26,6 @@ function removePlayerFromRoom(ws) {
                 if (room.removePlayer(player)) {
                     //if the room in now empty, remove it from the game and return;
                     if (Object.keys(room.getPlayers()).length == 0) {
-                        console.log('Removing empty room ' + room.getCode());
                         game.removeRoom(room);
                         return;
                     }
@@ -60,23 +59,22 @@ wss.on('connection', function connection(ws) {
             case 'CREATE_ROOM':
                 var newRoom = createRoom(new Player(message.username, ws));
                 game.addRoom(newRoom);
-                console.log(newRoom);
                 ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }));
                 break;
             case 'JOIN_ROOM':
                 var room_1 = game.rooms[message.roomCode];
                 //if the room does not exist we exit and sent an error message to the client
                 if (typeof room_1 == 'undefined') {
-                    ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: 0 /* joinResult.ROOM_DOES_NOT_EXIST */ }));
                     break;
                 }
                 //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
                 var addResult = room_1.addPlayer(new Player(message.username, ws));
-                if (addResult == 3 /* addPlayerResult.SUCCESS */) {
+                if (addResult == 4 /* joinResult.SUCCESS */) {
                     ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room_1 }));
                 }
                 else {
-                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult.toString }));
+                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult }));
                     break;
                 }
                 //send new room data to all users in the room

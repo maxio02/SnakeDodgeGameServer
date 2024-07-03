@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
-import { GameState, Room, addPlayerResult } from './models/room.js';
+import { GameState, Room, joinResult } from './models/room.js';
 
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
@@ -34,7 +34,6 @@ function removePlayerFromRoom(ws: WebSocket) {
         if (room.removePlayer(player)) {
           //if the room in now empty, remove it from the game and return;
           if (Object.keys(room.getPlayers()).length == 0) {
-            console.log('Removing empty room ' + room.getCode());
             game.removeRoom(room);
             return;
           }
@@ -71,8 +70,6 @@ wss.on('connection', function connection(ws: WebSocket) {
       case 'CREATE_ROOM':
         let newRoom = createRoom(new Player(message.username, ws));
         game.addRoom(newRoom);
-
-        console.log(newRoom);
         ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }))
         break;
 
@@ -81,16 +78,16 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //if the room does not exist we exit and sent an error message to the client
         if (typeof room == 'undefined') {
-          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }))
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.ROOM_DOES_NOT_EXIST }))
           break;
         }
 
         //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
         let addResult = room.addPlayer(new Player(message.username, ws));
-        if (addResult == addPlayerResult.SUCCESS) {
+        if (addResult == joinResult.SUCCESS) {
           ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room }))
         } else {
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult.toString}))
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult}))
           break;
         }
 
