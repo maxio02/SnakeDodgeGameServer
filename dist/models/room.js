@@ -36,7 +36,7 @@ var Room = /** @class */ (function () {
     };
     Room.prototype.removePlayer = function (player) {
         //if the game is not in the in_lobby state instead of deleting the player add him to the queue to be deleted once the game finishes 
-        if (this.gameState != 1 /* GameState.IN_LOBBY */) {
+        if (this.gameState !== 1 /* GameState.IN_LOBBY */) {
             this._playersToBeRemoved.push(player);
             return false;
         }
@@ -60,7 +60,7 @@ var Room = /** @class */ (function () {
     Room.prototype.removeStagedPlayers = function () {
         var _this = this;
         this._playersToBeRemoved.forEach(function (player) {
-            delete _this._players[player.username];
+            _this.removePlayer(player);
         });
     };
     Room.prototype.getCode = function () {
@@ -88,7 +88,6 @@ var Room = /** @class */ (function () {
     };
     Room.prototype.endGame = function () {
         this.gameState = 2 /* GameState.FINISHED */;
-        this.removeStagedPlayers();
         //inform the players back that the game has stopped on the server-side
         this.broadcastGameStateToPlayers();
         //reset the player snakes
@@ -96,10 +95,11 @@ var Room = /** @class */ (function () {
             player.removeSnake();
             player.isReady = false;
         });
-        this.broadcastLobbyInfoToPlayers();
         this._tickCount = 0;
         //TODO fix the entire resetting sequence
         this.gameState = 1 /* GameState.IN_LOBBY */;
+        this.removeStagedPlayers();
+        this.broadcastLobbyInfoToPlayers();
     };
     Room.prototype.broadcastGameTickToPlayers = function () {
         if (!this._isPaused) {

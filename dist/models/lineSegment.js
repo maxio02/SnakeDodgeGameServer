@@ -45,16 +45,16 @@ var LineSegment = /** @class */ (function (_super) {
     LineSegment.prototype.toMessageFormat = function () {
         if (this.isNewThisTick) {
             return {
-                startPoint: { x: this.startPoint.x, y: this.startPoint.y },
-                endPoint: { x: this.endPoint.x, y: this.endPoint.y },
-                endAngle: this.endAngle,
+                startPoint: { x: this.startPoint.x.toFixed(2), y: this.startPoint.y.toFixed(2) },
+                endPoint: { x: this.endPoint.x.toFixed(2), y: this.endPoint.y.toFixed(2) },
+                endAngle: this.endAngle.toFixed(3),
                 isCollidable: this.isCollidable,
                 isNewThisTick: this.isNewThisTick,
             };
         }
         else {
             return {
-                endPoint: { x: this.endPoint.x, y: this.endPoint.y },
+                endPoint: { x: this.endPoint.x.toFixed(2), y: this.endPoint.y.toFixed(2) },
             };
         }
     };

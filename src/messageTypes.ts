@@ -10,15 +10,15 @@ import Powerup from './models/powerup';
   }
 
   interface Point {
-    x: number;
-    y: number;
+    x: string;
+    y: string;
 }
 
 
   export interface NewLineSegmentMessage {
     startPoint: Point;
     endPoint: Point;
-    endAngle: number;
+    endAngle: string;
     isCollidable: boolean;
     isNewThisTick: boolean;
 }
@@ -28,15 +28,15 @@ export interface ExistingLineSegmentMessage {
 }
 
 export interface NewArcSegmentMessage {
-  center: Point
-  radius: number;
-  startAngle: number
-  endAngle: number;
+  center: Point;
+  radius: string;
+  startAngle: string;
+  endAngle: string;
   counterClockwise: boolean;
   isCollidable: boolean;
   isNewThisTick: boolean;
 }
 
 export interface ExistingArcSegmentMessage {
-  endAngle: number;
+  endAngle: string;
 }

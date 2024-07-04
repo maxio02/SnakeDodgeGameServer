@@ -67,7 +67,7 @@ export class Room {
     public removePlayer(player: Player): boolean {
 
         //if the game is not in the in_lobby state instead of deleting the player add him to the queue to be deleted once the game finishes 
-        if (this.gameState != GameState.IN_LOBBY) {
+        if (this.gameState !== GameState.IN_LOBBY) {
             this._playersToBeRemoved.push(player);
             return false;
         }
@@ -95,7 +95,7 @@ export class Room {
 
     public removeStagedPlayers() {
         this._playersToBeRemoved.forEach(player => {
-            delete this._players[player.username];
+            this.removePlayer(player);
         })
     }
 
@@ -131,8 +131,6 @@ export class Room {
 
     public endGame() {
         this.gameState = GameState.FINISHED;
-        this.removeStagedPlayers();
-
         //inform the players back that the game has stopped on the server-side
         this.broadcastGameStateToPlayers();
 
@@ -141,10 +139,12 @@ export class Room {
             player.removeSnake();
             player.isReady = false;
         });
-        this.broadcastLobbyInfoToPlayers();
+        
         this._tickCount = 0;
         //TODO fix the entire resetting sequence
         this.gameState = GameState.IN_LOBBY;
+        this.removeStagedPlayers();
+        this.broadcastLobbyInfoToPlayers();
     }
 
     public broadcastGameTickToPlayers() {

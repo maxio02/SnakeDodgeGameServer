@@ -83,17 +83,17 @@ export default class ArcSegment extends Segment {
   toMessageFormat(): NewArcSegmentMessage | ExistingArcSegmentMessage {
     if (this.isNewThisTick) {
       return {
-        center: { x: this.center.x, y: this.center.y },
-        radius: this.radius,
-        startAngle: this.startAngle,
-        endAngle: this.endAngle,
+        center: { x: this.center.x.toFixed(2), y: this.center.y.toFixed(2) },
+        radius: this.radius.toFixed(2),
+        startAngle: this.startAngle.toFixed(3),
+        endAngle: this.endAngle.toFixed(3),
         counterClockwise: this.counterClockwise,
         isCollidable: this.isCollidable,
         isNewThisTick: this.isNewThisTick,
       };
     } else {
       return {
-        endAngle: this.endAngle,
+        endAngle: this.endAngle.toFixed(3),
       };
     }
   }
