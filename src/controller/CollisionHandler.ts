@@ -6,8 +6,13 @@ import LineSegment from "../models/lineSegment.js";
 export default class CollisionHandler {
   private _snakes: Snake[];
   public wrapWalls: boolean = false;
-  constructor(snakes: Snake[]) {
+  public arenaSize: number;
+  public selfCollision: boolean
+  constructor(snakes: Snake[], arenaSize: number, selfCollision: boolean) {
     this._snakes = snakes;
+    this.arenaSize = arenaSize;
+    this.selfCollision = selfCollision;
+
   }
 
   public checkCollisions(): Snake {
@@ -31,6 +36,11 @@ export default class CollisionHandler {
 
       this._snakes.forEach((snake2) => {
         snake2.segments.forEach((segment) => {
+          //if self collision is turned off we want to skip the check
+          if(this.selfCollision === false && snake1 === snake2){
+            return;
+          }
+
           //skip the checks if the segment is non collidable or if the segment is itself
           if (!segment.isCollidable || segment === snake1.head) return;
 
@@ -125,12 +135,12 @@ export default class CollisionHandler {
       const lastSegment = snake.head;
 
       //check all four boundries
-      if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > 2000 ||
-        lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > 2000) {
+      if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > this.arenaSize ||
+        lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > this.arenaSize) {
             if (this.wrapWalls) {
                 // the new segment has to wrap either on x or y, if it does not on one of them then that coord is 0
-                const newX = (lastSegment.endPoint.x < 0) ? 2000 : (lastSegment.endPoint.x > 2000) ? -2000 : 0;
-                const newY = (lastSegment.endPoint.y < 0) ? 2000 : (lastSegment.endPoint.y > 2000) ? -2000 : 0;
+                const newX = (lastSegment.endPoint.x < 0) ? this.arenaSize : (lastSegment.endPoint.x > this.arenaSize) ? -this.arenaSize : 0;
+                const newY = (lastSegment.endPoint.y < 0) ? this.arenaSize : (lastSegment.endPoint.y > this.arenaSize) ? -this.arenaSize : 0;
                 snake.addSegment(lastSegment.getContinuingSegment(new Vector(newX, newY)));
               } else {
                 snake.kill();

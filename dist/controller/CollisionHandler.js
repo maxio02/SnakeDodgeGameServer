@@ -2,9 +2,11 @@ import { Vector } from "vector2d";
 import ArcSegment from "../models/arcSegment.js";
 import LineSegment from "../models/lineSegment.js";
 var CollisionHandler = /** @class */ (function () {
-    function CollisionHandler(snakes) {
+    function CollisionHandler(snakes, arenaSize, selfCollision) {
         this.wrapWalls = false;
         this._snakes = snakes;
+        this.arenaSize = arenaSize;
+        this.selfCollision = selfCollision;
     }
     CollisionHandler.prototype.checkCollisions = function () {
         var _this = this;
@@ -24,6 +26,10 @@ var CollisionHandler = /** @class */ (function () {
             }
             _this._snakes.forEach(function (snake2) {
                 snake2.segments.forEach(function (segment) {
+                    //if self collision is turned off we want to skip the check
+                    if (_this.selfCollision === false && snake1 === snake2) {
+                        return;
+                    }
                     //skip the checks if the segment is non collidable or if the segment is itself
                     if (!segment.isCollidable || segment === snake1.head)
                         return;
@@ -104,12 +110,12 @@ var CollisionHandler = /** @class */ (function () {
                 return;
             var lastSegment = snake.head;
             //check all four boundries
-            if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > 2000 ||
-                lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > 2000) {
+            if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > _this.arenaSize ||
+                lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > _this.arenaSize) {
                 if (_this.wrapWalls) {
                     // the new segment has to wrap either on x or y, if it does not on one of them then that coord is 0
-                    var newX = (lastSegment.endPoint.x < 0) ? 2000 : (lastSegment.endPoint.x > 2000) ? -2000 : 0;
-                    var newY = (lastSegment.endPoint.y < 0) ? 2000 : (lastSegment.endPoint.y > 2000) ? -2000 : 0;
+                    var newX = (lastSegment.endPoint.x < 0) ? _this.arenaSize : (lastSegment.endPoint.x > _this.arenaSize) ? -_this.arenaSize : 0;
+                    var newY = (lastSegment.endPoint.y < 0) ? _this.arenaSize : (lastSegment.endPoint.y > _this.arenaSize) ? -_this.arenaSize : 0;
                     snake.addSegment(lastSegment.getContinuingSegment(new Vector(newX, newY)));
                 }
                 else {

@@ -15,6 +15,7 @@ export default class PowerupHandler {
   private _avgTimeBetweenPowerUps: number;
   private _powerups: { [key: number]: Powerup } = {};
   private _effectZones: {};
+  public arenaSize: number;
   private _powerupCounter: number;
   private _wrapWallsTimeoutId: NodeJS.Timeout;
   private _powerupUpdate: {
@@ -29,7 +30,8 @@ export default class PowerupHandler {
     players: Player[],
     avgTimeBetweenPowerups: number,
     maxPowerupAmount: number,
-    collisionHandler: CollisionHandler
+    collisionHandler: CollisionHandler,
+    arenaSize : number
   ) {
     this._players = players;
     this._avgTimeBetweenPowerUps = avgTimeBetweenPowerups;
@@ -37,6 +39,7 @@ export default class PowerupHandler {
     this._collisionHandler = collisionHandler;
     this._maxPowerupAmount = maxPowerupAmount;
     this._powerupUpdate = [];
+    this.arenaSize = arenaSize;
   }
 
   public tick(dt: number) {
@@ -62,7 +65,7 @@ export default class PowerupHandler {
       this.addPowerup(
         new Powerup(
           this._powerupCounter,
-          new Vector(Math.random() * 1800 + 100, Math.random() * 1800 + 100),
+          new Vector(Math.random() * this.arenaSize * 0.9 + this.arenaSize * 0.05, Math.random() * this.arenaSize * 0.9 + this.arenaSize * 0.05),
           "#000000".replace(/0/g, function () {
             return (~~(Math.random() * 14)).toString(16);
           }),
@@ -166,8 +169,6 @@ export default class PowerupHandler {
                   player,
                 });
               }, powerup.duration);
-              break;
-            case PowerupType.FlipButtons:
               break;
             case PowerupType.CameraLockToPlayer:
               this._powerupUpdate.push({

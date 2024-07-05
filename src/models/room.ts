@@ -6,6 +6,7 @@ import ArcSegment from "./arcSegment.js";
 import InputManager from "./inputManager.js";
 import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
+import Powerup from './powerup';
 
 export const enum GameState {
     RUNNING,
@@ -17,15 +18,29 @@ export const enum joinResult {
     ROOM_DOES_NOT_EXIST,
     ROOM_FULL,
     GAME_RUNNING,
-    PLAYER_ALREADY_EXISTS,
+    INVALID_USERNAME,
     SUCCESS
 
+}
+
+export interface RoomSettings {
+    roomSize: number;
+    maxPowerups: number;
+    powerupInterval: number;
+    selfCollision: boolean;
+    arenaSize: number;
 }
 
 export class Room {
 
     private _players: { [key: string]: Player } = {};
-    private _maxSize: number;
+    public settings: RoomSettings = {
+        roomSize: 6,
+        maxPowerups: 7,
+        powerupInterval: 3,
+        arenaSize: 2000,
+        selfCollision: true
+    };
     private _host: Player;
     private _code: string;
     public gameState: GameState = GameState.IN_LOBBY;
@@ -36,10 +51,9 @@ export class Room {
     private _tickCount = 0;
     private _isPaused = false;
 
-    constructor(code: string, host: Player, maxSize: number = 6) {
+    constructor(code: string, host: Player) {
         this._code = code;
         this._host = host;
-        this._maxSize = maxSize;
         this.addPlayer(host);
     }
 
@@ -52,11 +66,11 @@ export class Room {
 
         //if there is a player named the same also do not allow to join
         if (Object.values(this._players).some(p => p.username === player.username)) {
-            return joinResult.PLAYER_ALREADY_EXISTS;
+            return joinResult.INVALID_USERNAME;
         }
 
         //if the room is full also do not allow to join
-        if (Object.keys(this._players).length >= this._maxSize) {
+        if (Object.keys(this._players).length >= this.settings.roomSize) {
             return joinResult.ROOM_FULL;
         }
 
@@ -117,13 +131,13 @@ export class Room {
 
         //create all the snakes and InputManagers associated with players
         Object.values(this.getPlayers()).forEach(player => {
-            let startPos = new Vector(Math.random() * 1200 + 400, Math.random() * 1200 + 400);
+            let startPos = new Vector(Math.random() * this.settings.arenaSize * 0.6 + this.settings.arenaSize * 0.2, Math.random() * this.settings.arenaSize * 0.6 + this.settings.arenaSize * 0.2);
             player.snake = new Snake(new LineSegment(startPos, startPos.add(new Vector(10, 10)), true, Math.random() * 2 * Math.PI));
             player.inputManager = new InputManager(player.snake);
         });
 
-        this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(player => player.snake));
-        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 2200, 7, this._collisionHandler);
+        this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(player => player.snake), this.settings.arenaSize, this.settings.selfCollision);
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), this.settings.powerupInterval * 1000, this.settings.maxPowerups, this._collisionHandler, this.settings.arenaSize);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
 
@@ -223,7 +237,7 @@ export class Room {
           code: this._code,
           host: this._host,
           players: this._players,
-          maxSize: this._maxSize
+          settings: this.settings
         };
       }
 

@@ -57,6 +57,10 @@ wss.on('connection', function connection(ws) {
                 roomToBegin.startGame();
                 break;
             case 'CREATE_ROOM':
+                if (message.username.length > 15) {
+                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: 3 /* joinResult.INVALID_USERNAME */ }));
+                    break;
+                }
                 var newRoom = createRoom(new Player(message.username, ws));
                 game.addRoom(newRoom);
                 ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }));
@@ -66,6 +70,10 @@ wss.on('connection', function connection(ws) {
                 //if the room does not exist we exit and sent an error message to the client
                 if (typeof room_1 == 'undefined') {
                     ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: 0 /* joinResult.ROOM_DOES_NOT_EXIST */ }));
+                    break;
+                }
+                if (message.username.length > 15) {
+                    ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: 3 /* joinResult.INVALID_USERNAME */ }));
                     break;
                 }
                 //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
@@ -110,6 +118,18 @@ wss.on('connection', function connection(ws) {
                 if (keyPlayer) {
                     keyPlayer.inputManager.handleInput(message.key, message.pressed === true);
                 }
+                break;
+            case 'ROOM_SETTINGS':
+                var settingsRoom_1 = game.rooms[message.roomCode];
+                if (!settingsRoom_1) {
+                    ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+                    return;
+                }
+                settingsRoom_1.settings = message.settings;
+                //notify all players about the new settings
+                Object.values(settingsRoom_1.getPlayers()).forEach(function (player) {
+                    player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: settingsRoom_1 }));
+                });
                 break;
             case 'ERROR':
                 console.error("Error: ".concat(message.message));

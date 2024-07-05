@@ -39,7 +39,7 @@ function removePlayerFromRoom(ws: WebSocket) {
           }
           //notify all players about the new ready state
           Object.values(room.getPlayers()).forEach(player => {
-            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }))
+            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }));
           });
         }
       }
@@ -60,7 +60,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //if the room does not exist we exit and sent an error message to the client
         if (typeof roomToBegin == 'undefined') {
-          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }))
+          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
           break;
         }
         //begin the game
@@ -68,9 +68,13 @@ wss.on('connection', function connection(ws: WebSocket) {
         roomToBegin.startGame();
         break;
       case 'CREATE_ROOM':
-        let newRoom = createRoom(new Player(message.username, ws));
-        game.addRoom(newRoom);
-        ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }))
+        if(message.username.length > 15){
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME }));
+          break;
+        }
+          let newRoom = createRoom(new Player(message.username, ws));
+          game.addRoom(newRoom);
+          ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }));
         break;
 
       case 'JOIN_ROOM':
@@ -78,16 +82,21 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //if the room does not exist we exit and sent an error message to the client
         if (typeof room == 'undefined') {
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.ROOM_DOES_NOT_EXIST }))
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.ROOM_DOES_NOT_EXIST }));
+          break;
+        }
+
+        if(message.username.length > 15){
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME }));
           break;
         }
 
         //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
         let addResult = room.addPlayer(new Player(message.username, ws));
         if (addResult == joinResult.SUCCESS) {
-          ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room }))
+          ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room }));
         } else {
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult}))
+          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult}));
           break;
         }
 
@@ -114,7 +123,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //notify all players about the new ready state
         Object.values(readyRoom.getPlayers()).forEach(player => {
-          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom }))
+          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom }));
         });
         break;
 
@@ -130,6 +139,20 @@ wss.on('connection', function connection(ws: WebSocket) {
         if (keyPlayer) {
           keyPlayer.inputManager.handleInput(message.key, message.pressed === true);
         }
+        break;
+
+        case 'ROOM_SETTINGS':
+          let settingsRoom = game.rooms[message.roomCode];
+
+          if (!settingsRoom) {
+            ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+            return;
+          }
+          settingsRoom.settings = message.settings;
+        //notify all players about the new settings
+        Object.values(settingsRoom.getPlayers()).forEach(player => {
+          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: settingsRoom }));
+        });
         break;
 
       case 'ERROR':

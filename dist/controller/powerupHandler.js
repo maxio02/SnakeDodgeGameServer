@@ -1,7 +1,7 @@
 import { Vector } from "vector2d";
 import Powerup, { PowerupType } from "../models/powerup.js";
 var PowerupHandler = /** @class */ (function () {
-    function PowerupHandler(players, avgTimeBetweenPowerups, maxPowerupAmount, collisionHandler) {
+    function PowerupHandler(players, avgTimeBetweenPowerups, maxPowerupAmount, collisionHandler, arenaSize) {
         this._timeToNextPowerupSpawn = 10;
         this._powerups = {};
         this._powerupUpdate = [];
@@ -11,6 +11,7 @@ var PowerupHandler = /** @class */ (function () {
         this._collisionHandler = collisionHandler;
         this._maxPowerupAmount = maxPowerupAmount;
         this._powerupUpdate = [];
+        this.arenaSize = arenaSize;
     }
     PowerupHandler.prototype.tick = function (dt) {
         if (this._timeToNextPowerupSpawn < 0 &&
@@ -30,7 +31,7 @@ var PowerupHandler = /** @class */ (function () {
                     powerupDuration = 0;
                     break;
             }
-            this.addPowerup(new Powerup(this._powerupCounter, new Vector(Math.random() * 1800 + 100, Math.random() * 1800 + 100), "#000000".replace(/0/g, function () {
+            this.addPowerup(new Powerup(this._powerupCounter, new Vector(Math.random() * this.arenaSize * 0.9 + this.arenaSize * 0.05, Math.random() * this.arenaSize * 0.9 + this.arenaSize * 0.05), "#000000".replace(/0/g, function () {
                 return (~~(Math.random() * 14)).toString(16);
             }), powerupType, powerupDuration));
             this._powerupCounter++;
@@ -111,8 +112,6 @@ var PowerupHandler = /** @class */ (function () {
                                     player: player,
                                 });
                             }, powerup.duration);
-                            break;
-                        case PowerupType.FlipButtons:
                             break;
                         case PowerupType.CameraLockToPlayer:
                             _this._powerupUpdate.push({

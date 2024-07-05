@@ -5,9 +5,15 @@ import InputManager from "./inputManager.js";
 import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
 var Room = /** @class */ (function () {
-    function Room(code, host, maxSize) {
-        if (maxSize === void 0) { maxSize = 6; }
+    function Room(code, host) {
         this._players = {};
+        this.settings = {
+            roomSize: 6,
+            maxPowerups: 7,
+            powerupInterval: 3,
+            arenaSize: 2000,
+            selfCollision: true
+        };
         this.gameState = 1 /* GameState.IN_LOBBY */;
         this._deadSnakesTimer = 0;
         this._playersToBeRemoved = [];
@@ -15,7 +21,6 @@ var Room = /** @class */ (function () {
         this._isPaused = false;
         this._code = code;
         this._host = host;
-        this._maxSize = maxSize;
         this.addPlayer(host);
     }
     Room.prototype.addPlayer = function (player) {
@@ -25,10 +30,10 @@ var Room = /** @class */ (function () {
         }
         //if there is a player named the same also do not allow to join
         if (Object.values(this._players).some(function (p) { return p.username === player.username; })) {
-            return 3 /* joinResult.PLAYER_ALREADY_EXISTS */;
+            return 3 /* joinResult.INVALID_USERNAME */;
         }
         //if the room is full also do not allow to join
-        if (Object.keys(this._players).length >= this._maxSize) {
+        if (Object.keys(this._players).length >= this.settings.roomSize) {
             return 1 /* joinResult.ROOM_FULL */;
         }
         this._players[player.username] = player;
@@ -73,16 +78,17 @@ var Room = /** @class */ (function () {
         return this._host;
     };
     Room.prototype.startGame = function () {
+        var _this = this;
         //change the game state
         this.gameState = 0 /* GameState.RUNNING */;
         //create all the snakes and InputManagers associated with players
         Object.values(this.getPlayers()).forEach(function (player) {
-            var startPos = new Vector(Math.random() * 1200 + 400, Math.random() * 1200 + 400);
+            var startPos = new Vector(Math.random() * _this.settings.arenaSize * 0.6 + _this.settings.arenaSize * 0.2, Math.random() * _this.settings.arenaSize * 0.6 + _this.settings.arenaSize * 0.2);
             player.snake = new Snake(new LineSegment(startPos, startPos.add(new Vector(10, 10)), true, Math.random() * 2 * Math.PI));
             player.inputManager = new InputManager(player.snake);
         });
-        this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }));
-        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), 2200, 7, this._collisionHandler);
+        this._collisionHandler = new CollisionHandler(Object.values(this.getPlayers()).map(function (player) { return player.snake; }), this.settings.arenaSize, this.settings.selfCollision);
+        this._powerupHandler = new PowerupHandler(Object.values(this.getPlayers()), this.settings.powerupInterval * 1000, this.settings.maxPowerups, this._collisionHandler, this.settings.arenaSize);
         //inform the players back that the game has begun on the server-side
         this.broadcastGameStateToPlayers();
     };
@@ -173,7 +179,7 @@ var Room = /** @class */ (function () {
             code: this._code,
             host: this._host,
             players: this._players,
-            maxSize: this._maxSize
+            settings: this.settings
         };
     };
     return Room;
