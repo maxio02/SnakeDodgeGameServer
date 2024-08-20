@@ -66,6 +66,7 @@ var CollisionHandler = /** @class */ (function () {
     CollisionHandler.prototype.isPointOnArc = function (arc, point, epsilon) {
         //if (Math.atan((arc.center.y - point.y) / (arc.center.x - point.x)))
         var distance = point.distance(arc.center);
+        //TODO can also just check if is inside of circle
         if (Math.abs(distance - arc.radius) > epsilon) {
             return false;
         }
@@ -86,19 +87,36 @@ var CollisionHandler = /** @class */ (function () {
         var normalizedEndAngle = normalizeAngle(endAngle);
         // Check if the angle lies within the start and end angles
         //The isCounterClockwise check is for when the start to end has rolled over 2pi
-        //TODO THIS IS WRONG
-        if (normalizedStartAngle <= normalizedEndAngle) {
-            if (normalizedAngle >= normalizedStartAngle &&
-                normalizedAngle <= normalizedEndAngle &&
-                !arc.isCounterClockwise()) {
-                return true;
+        if (normalizedStartAngle > normalizedEndAngle) {
+            if (!arc.isCounterClockwise()) {
+                if (normalizedAngle > normalizedStartAngle || normalizedAngle < normalizedEndAngle) {
+                    // console.log('died cause 1');
+                    // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+                    return true;
+                }
+            }
+            else {
+                if (normalizedAngle < normalizedStartAngle && normalizedAngle > normalizedEndAngle) {
+                    // console.log('died cause 2');
+                    // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+                    return true;
+                }
             }
         }
-        else {
-            if (normalizedAngle >= normalizedEndAngle &&
-                normalizedAngle <= normalizedStartAngle &&
-                arc.isCounterClockwise()) {
-                return true;
+        else if (normalizedStartAngle < normalizedEndAngle) {
+            if (!arc.isCounterClockwise()) {
+                if (normalizedAngle > normalizedStartAngle && normalizedAngle < normalizedEndAngle) {
+                    // console.log('died cause 3');
+                    // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+                    return true;
+                }
+            }
+            else {
+                if (normalizedAngle < normalizedStartAngle || normalizedAngle > normalizedEndAngle) {
+                    // console.log('died cause 4');
+                    // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+                    return true;
+                }
             }
         }
         return false;

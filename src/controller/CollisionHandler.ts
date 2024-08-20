@@ -37,7 +37,7 @@ export default class CollisionHandler {
       this._snakes.forEach((snake2) => {
         snake2.segments.forEach((segment) => {
           //if self collision is turned off we want to skip the check
-          if(this.selfCollision === false && snake1 === snake2){
+          if (this.selfCollision === false && snake1 === snake2) {
             return;
           }
 
@@ -84,6 +84,7 @@ export default class CollisionHandler {
     //if (Math.atan((arc.center.y - point.y) / (arc.center.x - point.x)))
     let distance = point.distance(arc.center);
 
+    //TODO can also just check if is inside of circle
     if (Math.abs(distance - arc.radius) > epsilon) {
       return false;
     }
@@ -108,22 +109,37 @@ export default class CollisionHandler {
 
     // Check if the angle lies within the start and end angles
     //The isCounterClockwise check is for when the start to end has rolled over 2pi
-    //TODO THIS IS WRONG
-    if (normalizedStartAngle <= normalizedEndAngle) {
-      if (
-        normalizedAngle >= normalizedStartAngle &&
-        normalizedAngle <= normalizedEndAngle &&
-        !arc.isCounterClockwise()
-      ) {
-        return true;
+
+    if (normalizedStartAngle > normalizedEndAngle) {
+      if (!arc.isCounterClockwise()) {
+          if(normalizedAngle > normalizedStartAngle || normalizedAngle < normalizedEndAngle){
+            // console.log('died cause 1');
+            // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+            return true;
+            
+          }
       }
-    } else {
-      if (
-        normalizedAngle >= normalizedEndAngle &&
-        normalizedAngle <= normalizedStartAngle &&
-        arc.isCounterClockwise()
-      ) {
-        return true;
+      else {
+        if(normalizedAngle < normalizedStartAngle && normalizedAngle > normalizedEndAngle){
+          // console.log('died cause 2');
+          // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+          return true;
+        }
+      }
+    } else if (normalizedStartAngle < normalizedEndAngle) {
+      if (!arc.isCounterClockwise()) {
+        if(normalizedAngle > normalizedStartAngle && normalizedAngle < normalizedEndAngle ){
+          // console.log('died cause 3');
+          // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+          return true;
+        }
+      }
+      else {
+        if(normalizedAngle < normalizedStartAngle || normalizedAngle > normalizedEndAngle){
+          // console.log('died cause 4');
+          // console.log(normalizedAngle, normalizedStartAngle, normalizedEndAngle);
+          return true;
+        }
       }
     }
     return false;
@@ -137,15 +153,15 @@ export default class CollisionHandler {
       //check all four boundries
       if (lastSegment.endPoint.x < 0 || lastSegment.endPoint.x > this.arenaSize ||
         lastSegment.endPoint.y < 0 || lastSegment.endPoint.y > this.arenaSize) {
-            if (this.wrapWalls) {
-                // the new segment has to wrap either on x or y, if it does not on one of them then that coord is 0
-                const newX = (lastSegment.endPoint.x < 0) ? this.arenaSize : (lastSegment.endPoint.x > this.arenaSize) ? -this.arenaSize : 0;
-                const newY = (lastSegment.endPoint.y < 0) ? this.arenaSize : (lastSegment.endPoint.y > this.arenaSize) ? -this.arenaSize : 0;
-                snake.addSegment(lastSegment.getContinuingSegment(new Vector(newX, newY)));
-              } else {
-                snake.kill();
-              }
-            }
+        if (this.wrapWalls) {
+          // the new segment has to wrap either on x or y, if it does not on one of them then that coord is 0
+          const newX = (lastSegment.endPoint.x < 0) ? this.arenaSize : (lastSegment.endPoint.x > this.arenaSize) ? -this.arenaSize : 0;
+          const newY = (lastSegment.endPoint.y < 0) ? this.arenaSize : (lastSegment.endPoint.y > this.arenaSize) ? -this.arenaSize : 0;
+          snake.addSegment(lastSegment.getContinuingSegment(new Vector(newX, newY)));
+        } else {
+          snake.kill();
+        }
+      }
     });
   }
 }
