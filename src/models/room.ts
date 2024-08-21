@@ -7,6 +7,7 @@ import InputManager from "./inputManager.js";
 import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
 import Powerup from './powerup';
+import { deflate } from "pako";
 
 export const enum GameState {
     RUNNING,
@@ -167,19 +168,19 @@ export class Room {
         let snakeHeads = Object.values(this.getPlayers())
             .filter(player => player.snake.isAlive)
             .map(player => ({
-                username: player.username,
-                lastSegment: player.snake.head.toMessageFormat(),
-                segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
+                u: player.username,
+                lS: player.snake.head.toMessageFormat(),
+                sT: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
             }))
 
         let powerupUpdate = this._powerupHandler.powerupUpdate;
         Object.values(this.getPlayers()).forEach(player => {
             //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
-            player.getWebSocket().send(JSON.stringify({
-                type: 'GAMEPLAY_DATA',
-                snakeHeads: snakeHeads,
-                powerupList: powerupUpdate
-            }))
+            player.getWebSocket().send(deflate(JSON.stringify({
+                type: 'GD',
+                s: snakeHeads,
+                p: powerupUpdate
+            })))
         });
         this._powerupHandler.resetUpdate()
     }
@@ -187,13 +188,13 @@ export class Room {
 
     public broadcastLobbyInfoToPlayers() {
         Object.values(this.getPlayers()).forEach(player => {
-            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: this }))
+            player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: this })))
         });
     }
 
     public broadcastGameStateToPlayers() {
         Object.values(this.getPlayers()).forEach(player => {
-            player.getWebSocket().send(JSON.stringify({ type: 'GAME_STATE', state: this.gameState }))
+            player.getWebSocket().send(deflate(JSON.stringify({ type: 'GAME_STATE', state: this.gameState })))
         });
     }
 

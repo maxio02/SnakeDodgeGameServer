@@ -4,6 +4,7 @@ import LineSegment from "./lineSegment.js";
 import InputManager from "./inputManager.js";
 import CollisionHandler from "../controller/CollisionHandler.js";
 import PowerupHandler from "../controller/powerupHandler.js";
+import { deflate } from "pako";
 var Room = /** @class */ (function () {
     function Room(code, host) {
         this._players = {};
@@ -112,18 +113,18 @@ var Room = /** @class */ (function () {
             var snakeHeads_1 = Object.values(this.getPlayers())
                 .filter(function (player) { return player.snake.isAlive; })
                 .map(function (player) { return ({
-                username: player.username,
-                lastSegment: player.snake.head.toMessageFormat(),
-                segmentType: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
+                u: player.username,
+                lS: player.snake.head.toMessageFormat(),
+                sT: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
             }); });
             var powerupUpdate_1 = this._powerupHandler.powerupUpdate;
             Object.values(this.getPlayers()).forEach(function (player) {
                 //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
-                player.getWebSocket().send(JSON.stringify({
-                    type: 'GAMEPLAY_DATA',
-                    snakeHeads: snakeHeads_1,
-                    powerupList: powerupUpdate_1
-                }));
+                player.getWebSocket().send(deflate(JSON.stringify({
+                    type: 'GD',
+                    s: snakeHeads_1,
+                    p: powerupUpdate_1
+                })));
             });
             this._powerupHandler.resetUpdate();
         }
@@ -131,13 +132,13 @@ var Room = /** @class */ (function () {
     Room.prototype.broadcastLobbyInfoToPlayers = function () {
         var _this = this;
         Object.values(this.getPlayers()).forEach(function (player) {
-            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: _this }));
+            player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: _this })));
         });
     };
     Room.prototype.broadcastGameStateToPlayers = function () {
         var _this = this;
         Object.values(this.getPlayers()).forEach(function (player) {
-            player.getWebSocket().send(JSON.stringify({ type: 'GAME_STATE', state: _this.gameState }));
+            player.getWebSocket().send(deflate(JSON.stringify({ type: 'GAME_STATE', state: _this.gameState })));
         });
     };
     Room.prototype.tick = function (dt) {

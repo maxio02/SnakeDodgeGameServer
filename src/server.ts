@@ -3,7 +3,7 @@ import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
 import { GameState, Room, joinResult } from './models/room.js';
-
+import { deflate } from 'pako';
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 const allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
@@ -39,7 +39,7 @@ function removePlayerFromRoom(ws: WebSocket) {
           }
           //notify all players about the new ready state
           Object.values(room.getPlayers()).forEach(player => {
-            player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }));
+            player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: room })));
           });
         }
       }
@@ -51,7 +51,7 @@ function removePlayerFromRoom(ws: WebSocket) {
 wss.on('connection', function connection(ws: WebSocket) {
   ws.on('message', function message(rawdata) {
     // console.log('received: %s', rawdata);
-
+    ws.binaryType = 'arraybuffer';
     const message = JSON.parse(rawdata.toString());
 
     switch (message.type) {
@@ -60,7 +60,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //if the room does not exist we exit and sent an error message to the client
         if (typeof roomToBegin == 'undefined') {
-          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+          ws.send(deflate(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' })));
           break;
         }
         //begin the game
@@ -69,12 +69,12 @@ wss.on('connection', function connection(ws: WebSocket) {
         break;
       case 'CREATE_ROOM':
         if(message.username.length > 15){
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME }));
+          ws.send(deflate(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME })));
           break;
         }
           let newRoom = createRoom(new Player(message.username, ws));
           game.addRoom(newRoom);
-          ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom }));
+          ws.send(deflate(JSON.stringify({ type: 'JOINED_ROOM', room: newRoom })));
         break;
 
       case 'JOIN_ROOM':
@@ -82,21 +82,21 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //if the room does not exist we exit and sent an error message to the client
         if (typeof room == 'undefined') {
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.ROOM_DOES_NOT_EXIST }));
+          ws.send(deflate(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.ROOM_DOES_NOT_EXIST })));
           break;
         }
 
         if(message.username.length > 15){
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME }));
+          ws.send(deflate(JSON.stringify({ type: 'JOIN_FAIL', reason: joinResult.INVALID_USERNAME })));
           break;
         }
 
         //if the room does exist we add the player to it and send him the room info ONLY if the function returns true
         let addResult = room.addPlayer(new Player(message.username, ws));
         if (addResult == joinResult.SUCCESS) {
-          ws.send(JSON.stringify({ type: 'JOINED_ROOM', room: room }));
+          ws.send(deflate(JSON.stringify({ type: 'JOINED_ROOM', room: room })));
         } else {
-          ws.send(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult}));
+          ws.send(deflate(JSON.stringify({ type: 'JOIN_FAIL', reason: addResult})));
           break;
         }
 
@@ -111,7 +111,7 @@ wss.on('connection', function connection(ws: WebSocket) {
         let readyRoom = game.rooms[message.roomCode];
         //if the room does not exist we exit and sent an error message to the client
         if (!readyRoom) {
-          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+          ws.send(deflate(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' })));
           return;
         }
         //otherwise find the player in the room that sent the request and set his state to ready
@@ -123,7 +123,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //notify all players about the new ready state
         Object.values(readyRoom.getPlayers()).forEach(player => {
-          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom }));
+          player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: readyRoom })));
         });
         break;
 
@@ -131,7 +131,7 @@ wss.on('connection', function connection(ws: WebSocket) {
         let playRoom = game.rooms[message.roomCode];
 
         if (!playRoom) {
-          ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+          ws.send(deflate(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' })));
           return;
         }
 
@@ -145,13 +145,13 @@ wss.on('connection', function connection(ws: WebSocket) {
           let settingsRoom = game.rooms[message.roomCode];
 
           if (!settingsRoom) {
-            ws.send(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' }));
+            ws.send(deflate(JSON.stringify({ type: 'ROOM_DOES_NOT_EXIST' })));
             return;
           }
           settingsRoom.settings = message.settings;
         //notify all players about the new settings
         Object.values(settingsRoom.getPlayers()).forEach(player => {
-          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: settingsRoom }));
+          player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: settingsRoom })));
         });
         break;
 
@@ -165,7 +165,7 @@ wss.on('connection', function connection(ws: WebSocket) {
     removePlayerFromRoom(ws);
   });
 
-  ws.send(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' }));
+  ws.send(deflate(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' })));
 });
 
 let timepassed = performance.now();
