@@ -115,7 +115,7 @@ var Room = /** @class */ (function () {
                 .map(function (player) { return ({
                 u: player.username,
                 lS: player.snake.head.toMessageFormat(),
-                sT: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
+                sT: player.snake.head instanceof LineSegment ? 'L' : 'A'
             }); });
             var powerupUpdate_1 = this._powerupHandler.powerupUpdate;
             Object.values(this.getPlayers()).forEach(function (player) {

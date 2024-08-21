@@ -170,7 +170,7 @@ export class Room {
             .map(player => ({
                 u: player.username,
                 lS: player.snake.head.toMessageFormat(),
-                sT: player.snake.head instanceof LineSegment ? 'LineSegment' : 'ArcSegment'
+                sT: player.snake.head instanceof LineSegment ? 'L' : 'A'
             }))
 
         let powerupUpdate = this._powerupHandler.powerupUpdate;
