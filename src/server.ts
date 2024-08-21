@@ -4,6 +4,8 @@ import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
 import { GameState, Room, joinResult } from './models/room.js';
 import { deflate } from 'pako';
+import pkg from 'tasktimer';
+const { TaskTimer } = pkg;
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 const allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
@@ -102,7 +104,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
         //send new room data to all users in the room
         Object.values(room.getPlayers()).forEach(player => {
-          player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room }))
+          player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: room })))
 
         });
         break;
@@ -170,7 +172,7 @@ wss.on('connection', function connection(ws: WebSocket) {
 
 let timepassed = performance.now();
 
-const tickRate = 1000 / 70; // Targeting 60 ticks per second
+const tickRate = 1000 / 50; // Targeting 50 ticks per second
 
 function gameLoop() {
   let timeNow = performance.now();
@@ -189,10 +191,10 @@ function gameLoop() {
       room.tick(deltaTime);
     }
   }
-
-  setTimeout(gameLoop, tickRate)
-
-  // setImmediate(gameLoop);
 }
 
-gameLoop()
+const timer = new TaskTimer(tickRate)
+
+timer.on('tick', () => gameLoop());
+
+timer.start();

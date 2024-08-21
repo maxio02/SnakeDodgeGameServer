@@ -3,6 +3,8 @@ import { Game } from './models/game.js';
 import { createRoom } from './controller/roomController.js';
 import { Player } from './models/player.js';
 import { deflate } from 'pako';
+import pkg from 'tasktimer';
+var TaskTimer = pkg.TaskTimer;
 var port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 var allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
 // const wss = new WebSocketServer({
@@ -88,7 +90,7 @@ wss.on('connection', function connection(ws) {
                 }
                 //send new room data to all users in the room
                 Object.values(room_1.getPlayers()).forEach(function (player) {
-                    player.getWebSocket().send(JSON.stringify({ type: 'ROOM_DATA', room: room_1 }));
+                    player.getWebSocket().send(deflate(JSON.stringify({ type: 'ROOM_DATA', room: room_1 })));
                 });
                 break;
             case 'PLAYER_DATA':
@@ -143,7 +145,7 @@ wss.on('connection', function connection(ws) {
     ws.send(deflate(JSON.stringify({ type: 'CONNECT_SUCCESSFULL' })));
 });
 var timepassed = performance.now();
-var tickRate = 1000 / 70; // Targeting 60 ticks per second
+var tickRate = 1000 / 50; // Targeting 50 ticks per second
 function gameLoop() {
     var timeNow = performance.now();
     var deltaTime = timeNow - timepassed;
@@ -160,8 +162,8 @@ function gameLoop() {
             room.tick(deltaTime);
         }
     }
-    setTimeout(gameLoop, tickRate);
-    // setImmediate(gameLoop);
 }
-gameLoop();
+var timer = new TaskTimer(tickRate);
+timer.on('tick', function () { return gameLoop(); });
+timer.start();
 //# sourceMappingURL=server.js.map
