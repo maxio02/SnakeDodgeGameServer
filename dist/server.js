@@ -7,18 +7,19 @@ import pkg from 'tasktimer';
 var TaskTimer = pkg.TaskTimer;
 var port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 var allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
-// const wss = new WebSocketServer({
-//   port: port,
-//   verifyClient: (info, done) => {
-//     const origin = info.origin;
-//     if (allowedOrigins.includes(origin)) {
-//       done(true);
-//     } else {
-//       done(false, 403, 'Forbidden');
-//     }
-//   }
-// });
-var wss = new WebSocketServer({ port: port });
+var wss = new WebSocketServer({
+    port: port,
+    verifyClient: function (info, done) {
+        var origin = info.origin;
+        if (allowedOrigins.includes(origin)) {
+            done(true);
+        }
+        else {
+            done(false, 403, 'Forbidden');
+        }
+    }
+});
+// const wss = new WebSocketServer({ port: port });
 var game = new Game();
 function removePlayerFromRoom(ws) {
     var _loop_1 = function (roomCode) {
@@ -158,8 +159,8 @@ function gameLoop() {
             if (room.gameState != 0 /* GameState.RUNNING */) {
                 continue;
             }
-            room.broadcastGameTickToPlayers();
             room.tick(deltaTime);
+            room.broadcastGameTickToPlayers();
         }
     }
 }

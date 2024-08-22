@@ -109,7 +109,7 @@ var Room = /** @class */ (function () {
         this.broadcastLobbyInfoToPlayers();
     };
     Room.prototype.broadcastGameTickToPlayers = function () {
-        if (!this._isPaused) {
+        if (!this._isPaused && this.gameState == 0 /* GameState.RUNNING */) {
             var snakeHeads_1 = Object.values(this.getPlayers())
                 .filter(function (player) { return player.snake.isAlive; })
                 .map(function (player) { return ({
@@ -117,6 +117,9 @@ var Room = /** @class */ (function () {
                 lS: player.snake.head.toMessageFormat(),
                 sT: player.snake.head instanceof LineSegment ? 'L' : 'A'
             }); });
+            Object.values(this.getPlayers()).forEach(function (player) {
+                player.snake.head.isNewThisTick = false;
+            });
             var powerupUpdate_1 = this._powerupHandler.powerupUpdate;
             Object.values(this.getPlayers()).forEach(function (player) {
                 //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
@@ -145,7 +148,7 @@ var Room = /** @class */ (function () {
         var _this = this;
         //a very dumb way to stop the server from ticking before the end of animation on the clint side
         //TODO think of a better solution
-        if (this._tickCount === 0) {
+        if (this._tickCount === 1) {
             this._isPaused = true;
             setTimeout(function () {
                 _this._isPaused = false;

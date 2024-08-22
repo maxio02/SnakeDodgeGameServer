@@ -77,7 +77,7 @@ export default class Snake {
     // do not move if snake has no segments
     const lastSegment = this.head;
     if (!lastSegment) return;
-    lastSegment.isNewThisTick = false;
+    
 
     //move the snake the correct amount, depending on the head segment
     if (lastSegment instanceof LineSegment) {

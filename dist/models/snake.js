@@ -59,15 +59,20 @@ var Snake = /** @class */ (function () {
         var lastSegment = this.head;
         if (!lastSegment)
             return;
-        lastSegment.isNewThisTick = false;
         //move the snake the correct amount, depending on the head segment
         if (lastSegment instanceof LineSegment) {
+            // if (lastSegment.startPoint.x !== lastSegment.endPoint.x || lastSegment.startPoint.y !== lastSegment.endPoint.y){
+            //   lastSegment.isNewThisTick = false;
+            // }
             var dx = dt * Math.cos(lastSegment.endAngle) * this._speed;
             var dy = dt * Math.sin(lastSegment.endAngle) * this._speed;
             var newEnd = new Vector(lastSegment.endPoint.x + dx, lastSegment.endPoint.y + dy);
             lastSegment.endPoint = newEnd;
         }
         else if (lastSegment instanceof ArcSegment) {
+            // if (lastSegment.startAngle !== lastSegment.endAngle){
+            //   lastSegment.isNewThisTick = false;
+            // }
             var angleExtension = dt * this._speed / lastSegment.radius;
             lastSegment.endAngle = lastSegment.isCounterClockwise()
                 ? lastSegment.endAngle - angleExtension

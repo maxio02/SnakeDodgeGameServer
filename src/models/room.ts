@@ -163,7 +163,7 @@ export class Room {
     }
 
     public broadcastGameTickToPlayers() {
-        if(!this._isPaused){
+        if(!this._isPaused && this.gameState == GameState.RUNNING){
 
         let snakeHeads = Object.values(this.getPlayers())
             .filter(player => player.snake.isAlive)
@@ -171,8 +171,11 @@ export class Room {
                 u: player.username,
                 lS: player.snake.head.toMessageFormat(),
                 sT: player.snake.head instanceof LineSegment ? 'L' : 'A'
-            }))
+            }));
 
+        Object.values(this.getPlayers()).forEach(player => {
+            player.snake.head.isNewThisTick = false;
+        });
         let powerupUpdate = this._powerupHandler.powerupUpdate;
         Object.values(this.getPlayers()).forEach(player => {
             //we want to broadcast only the snake heads and a bit to tell the client wheather to continue drawing the same segment or append a new segment
@@ -201,7 +204,7 @@ export class Room {
     public tick(dt: number) {
         //a very dumb way to stop the server from ticking before the end of animation on the clint side
         //TODO think of a better solution
-        if(this._tickCount === 0){
+        if(this._tickCount === 1){
             this._isPaused = true;
             setTimeout(() => {
                 this._isPaused = false;

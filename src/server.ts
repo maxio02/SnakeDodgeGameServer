@@ -187,8 +187,9 @@ function gameLoop() {
       if (room.gameState != GameState.RUNNING) {
         continue;
       }
-      room.broadcastGameTickToPlayers();
       room.tick(deltaTime);
+      room.broadcastGameTickToPlayers();
+      
     }
   }
 }
