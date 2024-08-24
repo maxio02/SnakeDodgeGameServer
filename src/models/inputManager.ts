@@ -9,23 +9,22 @@ export const enum Dir{
 }
 export default class InputManager {
   private _snake: Snake;
-  private _flipKeys: boolean = false;
-
+  private _nextKeyUp: Dir;
   constructor(snake: Snake) {
     this._snake = snake;
   }
 
   public handleInput(key: Dir, pressed: boolean){
     if (pressed) {
-      if (this._flipKeys) {
+      if (this._snake.isConfused) {
         key = key === Dir.LEFT ? Dir.RIGHT : Dir.LEFT;
-      }
+      } 
+      this._nextKeyUp = key;
       this.onKeyDown(key);
-    } else {
-      if (this._flipKeys) {
-        key = key === Dir.LEFT ? Dir.RIGHT : Dir.LEFT;
-      }
-      this.onKeyUp(key);
+
+    } 
+    else {
+      this.onKeyUp(this._nextKeyUp);
     }
   }
 
@@ -104,8 +103,6 @@ export default class InputManager {
     //console.log(this.snake.head);
   }
 
-  public invertKeys(){
-    this._flipKeys = !this._flipKeys;
-  }
+
 }
 

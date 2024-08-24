@@ -13,10 +13,12 @@
   "license": "ISC",
   "devDependencies": {
     "@types/ws": "^8.5.10",
+    "@types/seedrandom": "^3.0.8",
+    "@types/pako": "^2.0.3",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@types/pako": "^2.0.3",
+    "seedrandom": "^3.0.5",
     "pako": "^2.1.0",
     "tasktimer": "^3.0.0",
     "vector2d": "^3.0.0",

@@ -3,11 +3,12 @@ import { Vector } from "vector2d";
 export enum PowerupType {
   SpeedUp,
   SpeedDown,
-  // Bomb,
+  Bomb,
   // FlipButtons,
   Invisibility,
   PortalWalls,
-  CameraLockToPlayer
+  CameraLockToPlayer,
+  Confusion
 }
 
 export default class Powerup {

@@ -9,7 +9,8 @@ export default class Snake {
   public isAlive: boolean = true;
   private _turnRadius: number = 90;
   private _timeToChangeOfState: number = Math.random() * 2500 + 350;
-  private _speed = 0.3;
+  private _speed: number= 0.3;
+  public isConfused: boolean = false;
 
   constructor(startPos: LineSegment) {
     this.addSegment(startPos);
@@ -27,9 +28,9 @@ export default class Snake {
     return this._turnRadius;
   }
 
-  public applyPowerup(powerup: Powerup) {
+  public applyPowerup(powerupType: PowerupType) {
     //TODO apply constraints to the speed and radius, also add original speed or modification amount
-    switch (powerup.type) {
+    switch (powerupType) {
       case PowerupType.SpeedUp:
         this._speed *= 1.2;
         this._turnRadius *= 1.1;

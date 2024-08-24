@@ -9,6 +9,7 @@ var Snake = /** @class */ (function () {
         this._turnRadius = 90;
         this._timeToChangeOfState = Math.random() * 2500 + 350;
         this._speed = 0.3;
+        this.isConfused = false;
         this.addSegment(startPos);
     }
     Snake.prototype.addSegment = function (segment) {
@@ -28,9 +29,9 @@ var Snake = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    Snake.prototype.applyPowerup = function (powerup) {
+    Snake.prototype.applyPowerup = function (powerupType) {
         //TODO apply constraints to the speed and radius, also add original speed or modification amount
-        switch (powerup.type) {
+        switch (powerupType) {
             case PowerupType.SpeedUp:
                 this._speed *= 1.2;
                 this._turnRadius *= 1.1;
@@ -61,18 +62,12 @@ var Snake = /** @class */ (function () {
             return;
         //move the snake the correct amount, depending on the head segment
         if (lastSegment instanceof LineSegment) {
-            // if (lastSegment.startPoint.x !== lastSegment.endPoint.x || lastSegment.startPoint.y !== lastSegment.endPoint.y){
-            //   lastSegment.isNewThisTick = false;
-            // }
             var dx = dt * Math.cos(lastSegment.endAngle) * this._speed;
             var dy = dt * Math.sin(lastSegment.endAngle) * this._speed;
             var newEnd = new Vector(lastSegment.endPoint.x + dx, lastSegment.endPoint.y + dy);
             lastSegment.endPoint = newEnd;
         }
         else if (lastSegment instanceof ArcSegment) {
-            // if (lastSegment.startAngle !== lastSegment.endAngle){
-            //   lastSegment.isNewThisTick = false;
-            // }
             var angleExtension = dt * this._speed / lastSegment.radius;
             lastSegment.endAngle = lastSegment.isCounterClockwise()
                 ? lastSegment.endAngle - angleExtension

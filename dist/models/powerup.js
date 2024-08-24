@@ -2,11 +2,12 @@ export var PowerupType;
 (function (PowerupType) {
     PowerupType[PowerupType["SpeedUp"] = 0] = "SpeedUp";
     PowerupType[PowerupType["SpeedDown"] = 1] = "SpeedDown";
-    // Bomb,
+    PowerupType[PowerupType["Bomb"] = 2] = "Bomb";
     // FlipButtons,
-    PowerupType[PowerupType["Invisibility"] = 2] = "Invisibility";
-    PowerupType[PowerupType["PortalWalls"] = 3] = "PortalWalls";
-    PowerupType[PowerupType["CameraLockToPlayer"] = 4] = "CameraLockToPlayer";
+    PowerupType[PowerupType["Invisibility"] = 3] = "Invisibility";
+    PowerupType[PowerupType["PortalWalls"] = 4] = "PortalWalls";
+    PowerupType[PowerupType["CameraLockToPlayer"] = 5] = "CameraLockToPlayer";
+    PowerupType[PowerupType["Confusion"] = 6] = "Confusion";
 })(PowerupType || (PowerupType = {}));
 var Powerup = /** @class */ (function () {
     function Powerup(id, position, color, type, duration) {

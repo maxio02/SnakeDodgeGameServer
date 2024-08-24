@@ -3,21 +3,18 @@ import LineSegment from "./lineSegment.js";
 import ArcSegment from "./arcSegment.js";
 var InputManager = /** @class */ (function () {
     function InputManager(snake) {
-        this._flipKeys = false;
         this._snake = snake;
     }
     InputManager.prototype.handleInput = function (key, pressed) {
         if (pressed) {
-            if (this._flipKeys) {
+            if (this._snake.isConfused) {
                 key = key === 0 /* Dir.LEFT */ ? 1 /* Dir.RIGHT */ : 0 /* Dir.LEFT */;
             }
+            this._nextKeyUp = key;
             this.onKeyDown(key);
         }
         else {
-            if (this._flipKeys) {
-                key = key === 0 /* Dir.LEFT */ ? 1 /* Dir.RIGHT */ : 0 /* Dir.LEFT */;
-            }
-            this.onKeyUp(key);
+            this.onKeyUp(this._nextKeyUp);
         }
     };
     InputManager.prototype.onKeyDown = function (turnDirection) {
@@ -62,9 +59,6 @@ var InputManager = /** @class */ (function () {
         }
         this._snake.addSegment(new LineSegment(endPoint, new Vector(endPoint.x + Math.cos(angle), endPoint.y + Math.sin(angle)), head.isCollidable, angle));
         //console.log(this.snake.head);
-    };
-    InputManager.prototype.invertKeys = function () {
-        this._flipKeys = !this._flipKeys;
     };
     return InputManager;
 }());
