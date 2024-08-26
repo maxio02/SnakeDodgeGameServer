@@ -165,6 +165,13 @@ var PowerupHandler = /** @class */ (function () {
                             });
                             _this.generateZones(powerup, 3);
                             break;
+                        case PowerupType.Laser:
+                            _this._powerupUpdate.push({
+                                action: 2 /* PowerupAction.APPLY */,
+                                powerup: powerup,
+                                player: player,
+                            });
+                            break;
                         default:
                             snake.applyPowerup(powerup.type);
                             break;

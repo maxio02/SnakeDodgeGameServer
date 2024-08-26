@@ -4,7 +4,7 @@ export enum PowerupType {
   SpeedUp,
   SpeedDown,
   Bomb,
-  // FlipButtons,
+  Laser,
   Invisibility,
   PortalWalls,
   CameraLockToPlayer,

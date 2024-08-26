@@ -231,6 +231,14 @@ export default class PowerupHandler {
               this.generateZones(powerup, 3);
 
               break;
+              case PowerupType.Laser:
+              this._powerupUpdate.push({
+                action: PowerupAction.APPLY,
+                powerup,
+                player: player,
+              });
+
+              break;
             default:
               snake.applyPowerup(powerup.type);
               break;

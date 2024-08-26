@@ -1,4 +1,3 @@
-import { Vector } from 'vector2d';
 import { PowerupAction } from './controller/powerupHandler';
 import { Player } from './models/player';
 import Powerup from './models/powerup';

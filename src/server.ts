@@ -52,7 +52,7 @@ function removePlayerFromRoom(ws: WebSocket) {
 
 wss.on('connection', function connection(ws: WebSocket) {
   ws.on('message', function message(rawdata) {
-    // console.log('received: %s', rawdata);
+    
     ws.binaryType = 'arraybuffer';
     const message = JSON.parse(rawdata.toString());
 
