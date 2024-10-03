@@ -8,7 +8,7 @@ import pkg from 'tasktimer';
 const { TaskTimer } = pkg;
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-const allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
+const allowedOrigins = ['https://www.maxio.site', 'http://www.maxio.site'];
 
 const wss = new WebSocketServer({
   port: port,

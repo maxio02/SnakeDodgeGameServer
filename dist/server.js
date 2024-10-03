@@ -6,19 +6,20 @@ import { deflate } from 'pako';
 import pkg from 'tasktimer';
 var TaskTimer = pkg.TaskTimer;
 var port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-var allowedOrigins = ['https://maxio.site', 'http://maxio.site'];
-// const wss = new WebSocketServer({
-//   port: port,
-//   verifyClient: (info, done) => {
-//     const origin = info.origin;
-//     if (allowedOrigins.includes(origin)) {
-//       done(true);
-//     } else {
-//       done(false, 403, 'Forbidden');
-//     }
-//   }
-// });
-var wss = new WebSocketServer({ port: port });
+var allowedOrigins = ['https://www.maxio.site', 'http://www.maxio.site'];
+var wss = new WebSocketServer({
+    port: port,
+    verifyClient: function (info, done) {
+        var origin = info.origin;
+        if (allowedOrigins.includes(origin)) {
+            done(true);
+        }
+        else {
+            done(false, 403, 'Forbidden');
+        }
+    }
+});
+// const wss = new WebSocketServer({ port: port });
 var game = new Game();
 function removePlayerFromRoom(ws) {
     var _loop_1 = function (roomCode) {
@@ -47,7 +48,6 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function message(rawdata) {
         ws.binaryType = 'arraybuffer';
         var message = JSON.parse(rawdata.toString());
-        console.log('received: %s', message);
         switch (message.type) {
             case 'BEGIN_GAME':
                 var roomToBegin = game.rooms[message.roomCode];
