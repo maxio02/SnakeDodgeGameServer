@@ -59,6 +59,9 @@ var ArcSegment = /** @class */ (function (_super) {
     ArcSegment.prototype.getContinuingSegment = function (transform) {
         return new ArcSegment(this.center.clone().add(transform), this.radius, this.endAngle, this.endAngle, this.counterClockwise, this.isCollidable);
     };
+    ArcSegment.prototype.splitSegmentAtCircle = function () {
+        return [this];
+    };
     ArcSegment.prototype.toJSON = function () {
         var endPoint = this.endPoint;
         return {

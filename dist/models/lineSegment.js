@@ -42,11 +42,62 @@ var LineSegment = /** @class */ (function (_super) {
         var transformedEndpoint = this.endPoint.clone().add(transform);
         return new LineSegment(transformedEndpoint, transformedEndpoint, this.isCollidable, this.endAngle);
     };
+    LineSegment.prototype.splitSegmentAtCircle = function (circleCenter, radius) {
+        var d = this.endPoint.clone().subtract(this.startPoint);
+        var f = this.startPoint.clone().subtract(circleCenter);
+        var a = d.dot(d);
+        var b = 2 * f.dot(d);
+        var c = f.dot(f) - radius * radius;
+        // Discriminant
+        var discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) {
+            // No intersection
+            return [this];
+        }
+        else {
+            // Calculate the two points of intersection (if they exist)
+            var discriminantSqrt = Math.sqrt(discriminant);
+            var t1 = (-b - discriminantSqrt) / (2 * a);
+            var t2 = (-b + discriminantSqrt) / (2 * a);
+            var intersections = [];
+            if (t1 >= 0 && t1 <= 1) {
+                intersections.push(this.startPoint.clone().add(d.clone().multiplyByScalar(t1)));
+            }
+            if (t2 >= 0 && t2 <= 1) {
+                intersections.push(this.startPoint.clone().add(d.clone().multiplyByScalar(t2)));
+            }
+            if (intersections.length === 0) {
+                // No intersections within the segment bounds
+                return [this];
+            }
+            else if (intersections.length === 1) {
+                // One intersection: split into two segments
+                var intersectPoint = intersections[0];
+                var segment1 = new LineSegment(this.startPoint, intersectPoint, this.isCollidable, this.endAngle);
+                var segment2 = new LineSegment(intersectPoint, this.endPoint, false, this.endAngle);
+                return [segment1, segment2];
+            }
+            else {
+                // Two intersections: split into three segments
+                var _a = intersections, intersect1 = _a[0], intersect2 = _a[1];
+                var segment1 = new LineSegment(this.startPoint, intersect1, this.isCollidable, this.endAngle);
+                var segment2 = new LineSegment(intersect1, intersect2, false, this.endAngle);
+                var segment3 = new LineSegment(intersect2, this.endPoint, this.isCollidable, this.endAngle);
+                return [segment1, segment2, segment3];
+            }
+        }
+    };
     LineSegment.prototype.toMessageFormat = function () {
         if (this.isNewThisTick) {
             return {
-                startPoint: { x: this.startPoint.x.toFixed(2), y: this.startPoint.y.toFixed(2) },
-                endPoint: { x: this.endPoint.x.toFixed(2), y: this.endPoint.y.toFixed(2) },
+                startPoint: {
+                    x: this.startPoint.x.toFixed(2),
+                    y: this.startPoint.y.toFixed(2),
+                },
+                endPoint: {
+                    x: this.endPoint.x.toFixed(2),
+                    y: this.endPoint.y.toFixed(2),
+                },
                 endAngle: this.endAngle.toFixed(3),
                 isCollidable: this.isCollidable,
                 isNewThisTick: this.isNewThisTick,
@@ -54,7 +105,10 @@ var LineSegment = /** @class */ (function (_super) {
         }
         else {
             return {
-                endPoint: { x: this.endPoint.x.toFixed(2), y: this.endPoint.y.toFixed(2) },
+                endPoint: {
+                    x: this.endPoint.x.toFixed(2),
+                    y: this.endPoint.y.toFixed(2),
+                },
             };
         }
     };

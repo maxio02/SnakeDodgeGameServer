@@ -8,4 +8,5 @@ export default abstract class Segment {
     abstract isNewThisTick: boolean;
     abstract getContinuingSegment(transform: Vector): Segment;
     abstract toMessageFormat(): NewLineSegmentMessage | ExistingLineSegmentMessage | NewArcSegmentMessage | ExistingArcSegmentMessage;
+    abstract splitSegmentAtCircle(circleCenter: Vector, radius: number): Segment[];
 }

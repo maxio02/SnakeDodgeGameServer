@@ -4,6 +4,7 @@ import CollisionHandler from "./CollisionHandler.js";
 import { Player } from "../models/player.js";
 import seedrandom from "seedrandom";
 import Zone from "../models/zone.js";
+import Segment from "../models/segment.js";
 
 export const enum PowerupAction {
   REMOVE,
@@ -114,6 +115,15 @@ export default class PowerupHandler {
     const rng = seedrandom(`${powerup.id}`);
     //TODO this radius should be changable
     const radius = 200;
+    let delay = 0;
+    switch (powerup.type) {
+      case PowerupType.Bomb:
+        delay = 3000; //this is because of the animation on the client side
+        break;
+      case PowerupType.Confusion:
+        delay = 0;
+        break;
+    }
     for (let i = 0; i < amount; i++) {
       setTimeout(() => {
         const position = new Vector(
@@ -127,8 +137,7 @@ export default class PowerupHandler {
           powerup.type
         );
         // console.log(this._effectZones[currentNumberOfZones + i].position);
-      }, 300 * i);
-      
+      }, delay + 300 * i);
     }
   }
 
@@ -144,7 +153,7 @@ export default class PowerupHandler {
     const powerupTypes = Object.values(PowerupType).filter(
       (value) => typeof value === "number"
     ) as PowerupType[];
-    const randomIndex = Math.floor(Math.random() * powerupTypes.length);
+    const randomIndex = 2;
     return powerupTypes[randomIndex];
   }
 
@@ -231,7 +240,7 @@ export default class PowerupHandler {
               this.generateZones(powerup, 3);
 
               break;
-              case PowerupType.Laser:
+            case PowerupType.Laser:
               this._powerupUpdate.push({
                 action: PowerupAction.APPLY,
                 powerup,
@@ -260,6 +269,7 @@ export default class PowerupHandler {
         ) {
           switch (zone.type) {
             case PowerupType.Bomb:
+              snake.kill();
               break;
             case PowerupType.Confusion:
               snakeIsInConfusionZone = true;
@@ -269,7 +279,20 @@ export default class PowerupHandler {
               break;
           }
         }
+        if (zone.type === PowerupType.Bomb) {
+          let newSegments: Segment[] = [];
+          snake.segments.forEach((segment) => {
+            const splitSegments = segment.splitSegmentAtCircle(
+              zone.position,
+              zone.currentRadius
+            );
+            newSegments.push(...splitSegments);
+          });
+          // Replace the old segments with the new ones
+          snake.segments = newSegments;
+        }
       });
+
       // console.log(snakeIsInConfusionZone);
       player.snake.isConfused = snakeIsInConfusionZone;
     });

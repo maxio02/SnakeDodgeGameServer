@@ -73,13 +73,22 @@ var PowerupHandler = /** @class */ (function () {
         var rng = seedrandom("".concat(powerup.id));
         //TODO this radius should be changable
         var radius = 200;
+        var delay = 0;
+        switch (powerup.type) {
+            case PowerupType.Bomb:
+                delay = 3000; //this is because of the animation on the client side
+                break;
+            case PowerupType.Confusion:
+                delay = 0;
+                break;
+        }
         var _loop_1 = function (i) {
             setTimeout(function () {
                 var position = new Vector(Math.floor(rng() * (_this.arenaSize - 2 * radius)) + radius, Math.floor(rng() * (_this.arenaSize - 2 * radius)) + radius);
                 //TODO this will break in the future [currentNumberOfZones + i]
                 _this._effectZones[currentNumberOfZones + i] = new Zone(position, radius, powerup.type);
                 // console.log(this._effectZones[currentNumberOfZones + i].position);
-            }, 300 * i);
+            }, delay + 300 * i);
         };
         for (var i = 0; i < amount; i++) {
             _loop_1(i);
@@ -97,7 +106,7 @@ var PowerupHandler = /** @class */ (function () {
     });
     PowerupHandler.prototype.getRandomPowerupType = function () {
         var powerupTypes = Object.values(PowerupType).filter(function (value) { return typeof value === "number"; });
-        var randomIndex = Math.floor(Math.random() * powerupTypes.length);
+        var randomIndex = 2;
         return powerupTypes[randomIndex];
     };
     PowerupHandler.prototype.isPointInCircle = function (center, radius, point, epsilon) {
@@ -185,6 +194,7 @@ var PowerupHandler = /** @class */ (function () {
                 if (_this.isPointInCircle(zone.position, zone.currentRadius, snake.head.endPoint, 5)) {
                     switch (zone.type) {
                         case PowerupType.Bomb:
+                            snake.kill();
                             break;
                         case PowerupType.Confusion:
                             snakeIsInConfusionZone = true;
@@ -192,6 +202,15 @@ var PowerupHandler = /** @class */ (function () {
                         default:
                             break;
                     }
+                }
+                if (zone.type === PowerupType.Bomb) {
+                    var newSegments_1 = [];
+                    snake.segments.forEach(function (segment) {
+                        var splitSegments = segment.splitSegmentAtCircle(zone.position, zone.currentRadius);
+                        newSegments_1.push.apply(newSegments_1, splitSegments);
+                    });
+                    // Replace the old segments with the new ones
+                    snake.segments = newSegments_1;
                 }
             });
             // console.log(snakeIsInConfusionZone);

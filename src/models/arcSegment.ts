@@ -66,6 +66,10 @@ export default class ArcSegment extends Segment {
     );
   }
 
+  splitSegmentAtCircle(): ArcSegment[] {
+    return [this];
+}
+
   toJSON() {
     let endPoint = this.endPoint;
     return {

@@ -47,7 +47,6 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function message(rawdata) {
         ws.binaryType = 'arraybuffer';
         var message = JSON.parse(rawdata.toString());
-        console.log('received: %s', message);
         switch (message.type) {
             case 'BEGIN_GAME':
                 var roomToBegin = game.rooms[message.roomCode];
